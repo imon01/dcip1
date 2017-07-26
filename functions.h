@@ -8,7 +8,7 @@ typedef struct flags{
     unsigned char position;
     unsigned char noleft;
     unsigned char noright;
-    unsigned char output; /* output left (0), output right (0)*/
+    unsigned char output; /* output left (0), output right (1)*/
     unsigned char dsplr;
     unsigned char reconl;
     unsigned char dsprl;

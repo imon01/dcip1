@@ -77,7 +77,7 @@ Note:
 
 #define PROTOPORT 36795 /* default protocol port number, booknumber */
 #define QLEN 6 /* size of request queue */
-#define MAXSIZE 1000
+#define MAXSIZE 256
 
 
 /* For Windows OS ?*/
@@ -198,7 +198,7 @@ int main(int argc, char * argv[]) {
     flags->dsprl   = 0; /* display right  to left data */
     flags->loopr   = 0; /* take data that comes from the left and send it back to the left */
     flags->loopl   = 0; /* take data that comes in from the right and send back to the right */
-    flags->output  = 0
+    flags->output  = 0;
     
     
     /*********************************/
@@ -292,11 +292,13 @@ int main(int argc, char * argv[]) {
 
             case 'f':
                 flags->loopr = 1;
+                flags->output = 1;                
                 printf("loopr\n");
                 break;
 
             case 'g':
                 flags->loopl = 1;
+                flags->output = 0;
                 printf("loopl\n");
                 break;
 
@@ -404,7 +406,9 @@ int main(int argc, char * argv[]) {
     /*********************************/       
     switch (flags->position){
 
-        /* Middle piggy */
+        /* 
+         * Middle piggy 
+         */
         case 0:
             printf("Middle piggy\n");
 
@@ -432,7 +436,9 @@ int main(int argc, char * argv[]) {
             printf("Two left descriptors added, main left listening and left accept\n");
             break;
 
-            /* Head piggy */
+        /* 
+         * Head piggy 
+         */
         case 1:
             printf("Head piggy\n");
 
@@ -450,7 +456,9 @@ int main(int argc, char * argv[]) {
             FD_SET(parentrd, &masterset);
             break;
 
-            /* Tail Piggy*/
+        /* 
+         * Tail Piggy
+         */
         default:
             printf("Tail piggy\n");
 
@@ -475,7 +483,7 @@ int main(int argc, char * argv[]) {
 
 
     /* Since the piggy position is at least 0 and less than 3*/
-    /*  maxfd == parentld or maxfd == parentrd                   */
+    /*  maxfd == parentld or maxfd == parentrd               */
     maxfd = max(parentld, parentrd);
     printf("All required sockets okay...\n");
     printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
@@ -513,32 +521,25 @@ int main(int argc, char * argv[]) {
                             ch = getchar();
 
                             if(ch == 27){
+                                printf("\n");
                                 break;
                             }else{
                                 buf[0] = (char) ch;
-                                //putchar(ch);
-                                if(openrd){
-                                    if(flags){
-                                       // printf("right send...\n");
-                                        n = send(parentrd, buf, sizeof(buf), 0);
-                                                                                
-                                        if( n < 0){
-                                            printf("send parent error");
-
-                                            break;
-                                        }
-                                        else if(n == 0){
-                                            /* Here, if persr is set, we will attempt*/
-                                            /*  reestablish the connection           */
-                                            printf("1: right connection closed...\n");
-                                            break;
-                                        }
-                                        else{
-                                          //  printf("message sent\n");
-                                        }
+                                
+                                if(flags->output && openrd){                                                                              
+                                    n = send(parentrd, buf, sizeof(buf), 0);
+                                    if( n < 0){
+                                        printf("send parent error");
+                                        break;
+                                    }
+                                    if(n == 0){
+                                        /* Here, if persr is set, we will attempt*/
+                                        /*  reestablish the connection           */
+                                        printf("1: right connection closed...\n");
+                                        break;
                                     }
                                 }
-                                else{
+                                if( !flags->output && openld){
                                     /* Send data to the left, this is a tail piggy */
                                     n = send(desc, buf, sizeof(buf), 0);
 
@@ -552,7 +553,7 @@ int main(int argc, char * argv[]) {
                                     }
                                 }
                             }
-                        }                    
+                        }
                     }                    
                     else{
                         printf("no open sockets..\n");
@@ -784,7 +785,7 @@ int main(int argc, char * argv[]) {
             if(flags->dsplr == 1){
                 printf("%s", buf);            
             }
-            
+             
             /* Loop data right if set*/
             if(flags->loopr ==1){
                 n = send(desc, buf, sizeof(buf), 0);
