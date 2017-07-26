@@ -167,6 +167,9 @@ WSAStartup(0x0101, &wsaData);
     char *word2, *end;
     int inputLength = strlen(buf);
     char *inputCopy = (char *) calloc(inputLength + 1, sizeof(char));    
+    int readLines;
+    char *filename;
+    
     
     icmd  * flags;
     flags = malloc(sizeof(icmd));
@@ -184,8 +187,9 @@ WSAStartup(0x0101, &wsaData);
     
     
     
-    /* Getting local IP address*/
-    
+    /*********************************/
+    /*    Getting local IP address   */
+    /*********************************/
     if (gethostname(hostname, sizeof(hostname)) < 0) {
         printf("gethostname, local machine error\n");
         tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
@@ -200,17 +204,24 @@ WSAStartup(0x0101, &wsaData);
     }
 
     ip = *(struct in_addr*)lhost->h_addr_list[0];
-    flags->lladdr = inet_ntoa(ip);            
+    flags->lladdr = inet_ntoa(ip);
+    /*********************************/
+    /* End getting local IP address  */
+    /*********************************/
+    
 
 
+    /*********************************/
+    /*  Parsing argv[]               */
+    /*********************************/    
     while ((ch = getopt_long_only(argc, argv, "a::l::r::d::e::f::g::t::k:z:", long_options, &indexptr)) != -1) {
         switch (ch) {
             case 'a':
-                // read file
+                /* read file */
                 if (argv[2] != NULL) {
 
-                    char *filename = argv[2];
-                    int readLines = fileRead(filename, output);
+                    *filename = argv[2];
+                    readLines = fileRead(filename, output);
                     /* read from array and pass into flag function*/
                     for(x = 0; x < readLines; ++x){
                         printf("%s\n", output[x]);
@@ -220,14 +231,15 @@ WSAStartup(0x0101, &wsaData);
                             printf("invalid command\n");
                         }
 
-                        free(output[x]);//Discard after being used
+                        /* Discard after being used*/
+                        free(output[x]);
                     }
 
                 }
-                    // if none specified read from default filename
+                /* if none specified read from default filename*/
                 else {
 
-                    int readLines = fileRead("scriptin.txt", output);
+                    readLines = fileRead("scriptin.txt", output);
                     // read from array and pass into flag function
                     for( x = 0; x < readLines; ++x){
                         printf("%s\n", output[x]);
@@ -310,7 +322,6 @@ WSAStartup(0x0101, &wsaData);
                 flags->rraddr = argv[optind - 1];
 
                 hints.ai_family = AF_INET;
-
                 n = getaddrinfo(flags->rraddr, NULL, NULL, &infoptr);
 
                 if (n != 0) {
@@ -382,7 +393,6 @@ WSAStartup(0x0101, &wsaData);
             
             pigopt =2;
             parentrd = sock_init(flags, pigopt, 0, flags->rrport, flags->rraddr, right, host);
-
             if( parentrd < 0){
                 tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
                 exit(1);
@@ -390,13 +400,14 @@ WSAStartup(0x0101, &wsaData);
 
             pigopt = 1;
             parentld = sock_init(flags, pigopt, QLEN, flags->llport, NULL, left, NULL);
-
             if( parentld < 0){
                 tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
                 exit(1);
             }
 
-            //FD_SET(desc, &masterset);
+            
+            openrd = 1;
+            openld = 1;
             FD_SET(parentld, &masterset);
             FD_SET(parentrd, &masterset);
             printf("One right descriptor added to fd_set, right descriptor\n");
@@ -415,7 +426,8 @@ WSAStartup(0x0101, &wsaData);
                 exit(1);
             }
 
-            openrd =1;
+            openrd = 1;
+            openld = 0;
             printf("One right descriptor added to fd_set, right descriptor\n");
             FD_SET(parentrd, &masterset);
             break;
@@ -495,8 +507,7 @@ WSAStartup(0x0101, &wsaData);
                                         /*  reestablish the connection           */
                                         printf("1: right connection closed...\n");
                                         break;
-                                    }
-                                    //printf("Message sent successfully...\n");
+                                    }                                    
                                 }
                                 else{
                                     /* Send data to the left, this is a tail piggy */
@@ -536,10 +547,8 @@ WSAStartup(0x0101, &wsaData);
                         if(ch == 10){
                             break;
                         }else{
-
                             buf[i++] = ch;
                             putchar(ch);
-
                         }
                     }
 
@@ -558,28 +567,63 @@ WSAStartup(0x0101, &wsaData);
                             n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, lconn, right);
 
                             switch(n){
+                                /* valid command*/
                                 case 1:
                                     break;
-                                case 2:
+                                /* persl*/                                    
+                                case 2:   
+                                    if(flags->position <2 0 && !openld){
+                                        FD_SET(desc, &masterset);
+                                    }
                                     break;
+                                /* persr, make reconnection if necessary*/
                                 case 3:
+                                    if(flags->position < 2 && !FD_ISSET(parentrd, &masterset) ){
+                                        printf("right side reconnecting..\n ");
+                                        pigopt = 2;     
+                                        
+                                        do{
+                                            parentrd = sock_init(flags,pigopt, 0, flags->rrport, flags->rraddr, right, host);                                                                                    
+                                        }while(parentrd < 0);
+
+                                        openrd = 1;
+                                        openld = 0;
+                                        printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
+                                        maxfd = max(desc, parentld);
+                                        maxfd = max(maxfd, parentrd);
+                                        FD_SET(parentrd, &masterset);
+                                        printf("One right descriptor added to fd_set, right descriptor\n");                                        
+                                        printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
+                                    }
                                     break;
+                                /* dropl*/                                                                    
                                 case 4:
+                                    if( desc > 0 ){
+                                        buf[0]= '\0';
+                                        strncat(buf, "REMOTE-LEFT-DROP", sizeof(buf));
+                                        n = send(desc, buf, sizeof(buf), 0);      
+                                        
+                                        if(n < 0){
+                                            continue;
+                                        }
+                                        FD_CLR(desc, & masterset);
+                                    }
                                     break;
+                                /* dropr*/
                                 case 5:
+                                    if(parentrd > 0){
+                                        FD_CLR(parentrd, &masterset);
+                                    }
                                     break;                                
                                 default:
                                     printf("invalid command\n");                                
-                            }                         
-
+                            }
                             free(output[x]);
                         }
 
                         break;
-                    }else{                        
-                        //printf("\n%s\n", buf);
+                    }else{                                                
                         n = flagsfunction(flags, buf, sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd,                                       lconn, right);
-
                         
                         switch(n){
                             case 1:
@@ -661,7 +705,7 @@ WSAStartup(0x0101, &wsaData);
                     break;
                 }
                 if( n == 0){
-                    printf("2: right connection closed, reestablish later...\n");
+                    
                     break;
                 }
                 // printf("Message loooped left successfully...\n");

@@ -210,9 +210,9 @@ int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct s
 *            4  reserved for dropl
 *            5  reserver for dropr
 */
-int flagsfunction(fd_set * fdset, icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right){    
+int flagsfunction( icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right){    
         int value = -1;
-        
+        /* */
         if (strncmp(command, "outputl", len) == 0) {        
             printf("set output to left piggy\n");
             flags->output =0;        
@@ -220,6 +220,7 @@ int flagsfunction(fd_set * fdset, icmd  * flags, char * command, int len ,int po
             flags->loopr = 0;            
         }
         
+        /* */
         if (strncmp(command, "outputr", len) == 0) {
             
             value = 1;        
@@ -228,6 +229,7 @@ int flagsfunction(fd_set * fdset, icmd  * flags, char * command, int len ,int po
             flags->loopr = 0;
         }
         
+        /* */
         if (strncmp(command, "output", len) == 0) {
             value = 1;        
             if (flags->output = 0) {
@@ -238,6 +240,7 @@ int flagsfunction(fd_set * fdset, icmd  * flags, char * command, int len ,int po
             }
         }
         
+        /* */
         if (strncmp(command, "dsplr", len) == 0) {
             value = 1;
             flags->dsprl = 0;
@@ -246,14 +249,15 @@ int flagsfunction(fd_set * fdset, icmd  * flags, char * command, int len ,int po
             printf("display left to right stream\n");
         }
         
+        /* */
         if (strncmp(command, "dsprl", len) == 0) {
             value = 1;     
             flags->dsprl = 1;
-            flags->dsplr = 0; 
-            
+            flags->dsplr = 0;             
             printf("display right to left stream\n");
         }
         
+        /* */
         if (strncmp(command, "display", len) == 0) {
             value = 1;
             if(flags->dsplr){
@@ -264,34 +268,58 @@ int flagsfunction(fd_set * fdset, icmd  * flags, char * command, int len ,int po
             }        
         }
         
+        /* 
+         *
+         * 
+         *
+         *
+         *
+         *
+         *        
+         */
+        if (strncmp(command, "persl", len) == 0) {
+            value = 2;
+            flags->persl = 1;
+            *openld = 1;
+            printf("persl\n");
+        }
+        
+        /* */
+        if (strncmp(command, "persr", len) == 0) {        
+            value = 3;
+            flags->persr = 1;
+            *openrd = 1;
+            printf("persrl\n");
+        }        
+        
+        /* */
+        if (strncmp(command, "dropl", len) == 0) {
+            value = 4;
+            flags->dropl = 1;          
+            printf("drop left\n");
+        }   
+        
+        /* */
         if (strncmp(command, "dropr", len) == 0) {
             value = 5;
             flags->dropr = 1;
             *openrd = 0;
             shutdown( *rd, 2);
             printf("drop right\n");
-        }
+        }            
         
-        if (strncmp(command, "dropl", len) == 0) {
-            value = 2;
-            flags->dropl = 1;          
-            printf("drop left\n");
-        }
-        
-        if (strncmp(command, "persl", len) == 0) {
-            value = 1;
-            flags->persl = 1;
-            *openld = 1;
-            printf("persl\n");
-        }
-        
-        if (strncmp(command, "persr", len) == 0) {        
-            value = 1;
-            flags->persr = 1;
-            *openrd = 1;
-            printf("persrl\n");
-        }
-        
+        /*
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         */
         if (strncmp(command, "right", len) == 0){    
             value = 1;                
             printf("%s:%hu", flags->lladdr, flags->llport);
@@ -310,7 +338,8 @@ int flagsfunction(fd_set * fdset, icmd  * flags, char * command, int len ,int po
             }
         }
         
-        if (strncmp(command, "left", len) == 0) {                
+        /* left side connection*/
+        if (strncmp(command, "left", len) == 0){
             value = 1;                
             if( *openld == 1){
                 printf("%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);            
@@ -338,7 +367,8 @@ int flagsfunction(fd_set * fdset, icmd  * flags, char * command, int len ,int po
             value = 1;
             flags->loopl = 1;
             printf("loopl\n");
-        }    
+        }
+        
         return value;
 }
 /*End flagsfunction*/
@@ -373,4 +403,24 @@ char *strdup(const char *str){
         strcpy(ret, str);
     }
     return ret;
+}
+
+/*
+*Function:  
+*           connectionopt
+* 
+*Description: 
+*           performs the appopriate connection task
+* 
+*Relavent Arguments:
+*            2  reserved for persl
+*            3  reserved for persr
+*            4  reserved for dropl
+*            5  reserver for dropr
+*Returns : 
+*           None, function is called with the valid return values of flags 
+*               function.
+*/
+
+void connectopt(icmd * flags, *fd_set masterset, , int *openld, int *openrd, int *desc, int *rd, struct sockaddr_in conn, struct hosten *host){        
 }
