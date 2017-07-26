@@ -443,7 +443,7 @@ WSAStartup(0x0101, &wsaData);
 
             pigopt = 1;
             parentld = sock_init(flags, pigopt, QLEN, flags->llport, NULL, left, NULL);
-            openld =1;
+            openld = 1;
 
             if( parentld < 0){
                 tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
@@ -508,18 +508,20 @@ WSAStartup(0x0101, &wsaData);
                                 if(flags->position <=1){
                                     if(openrd){
                                         n = send(parentrd, buf, sizeof(buf), 0);
-                                    }
-                                    if( n < 0){
-                                        printf("send parent error");
+                                                                                
+                                        if( n < 0){
+                                            printf("send parent error");
 
-                                        break;
+                                            break;
+                                        }
+                                        if(n == 0){
+                                            /* Here, if persr is set, we will attempt*/
+                                            /*  reestablish the connection           */
+                                            printf("1: right connection closed...\n");
+                                            break;
+                                        }
+                                        printf("message sent\n");
                                     }
-                                    if(n == 0){
-                                        /* Here, if persr is set, we will attempt*/
-                                        /*  reestablish the connection           */
-                                        printf("1: right connection closed...\n");
-                                        break;
-                                    }                                    
                                 }
                                 else{
                                     /* Send data to the left, this is a tail piggy */
@@ -765,8 +767,7 @@ WSAStartup(0x0101, &wsaData);
 
             /* If dsprl is set we print data coming frm the right*/
             if(flags->dsplr == 1){
-                printf("%c", buf[0]);
-                
+                printf("%s", buf);            
             }
             
             /* Loop data right if set*/
