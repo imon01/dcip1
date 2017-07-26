@@ -206,7 +206,7 @@ int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct s
 *           -1  invalid interactive command option
 *            1  valid interactive command 
 */
-int flagsfunction(icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in right, struct sockaddr_in left){    
+int flagsfunction(icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right){    
         int value = -1;
         
         if (strncmp(command, "outputl", len) == 0) {        
@@ -288,7 +288,7 @@ int flagsfunction(icmd  * flags, char * command, int len ,int position, int * op
             value = 1;                
             printf("%s:%hu", flags->lladdr, flags->llport);
             if(*openrd == 1){
-                printf(":%s:%hu",inet_ntoa(right.sin_addr), right.sin_port);            
+                printf(":%s:%hu", flags->rraddr, flags->rrport);
             }
             else{
                 printf(":*:*");
@@ -305,7 +305,7 @@ int flagsfunction(icmd  * flags, char * command, int len ,int position, int * op
         if (strncmp(command, "left", len) == 0) {                
             value = 1;                
             if( *openld == 1){
-                printf("%s:%hu",inet_ntoa(right.sin_addr), right.sin_port);            
+                printf("%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);            
             }
             else{
                 printf("*:*");

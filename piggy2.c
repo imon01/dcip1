@@ -132,8 +132,8 @@ WSAStartup(0x0101, &wsaData);
 
     int parentrd =-1; /*right and left socket descriptors*/
     int parentld = -1;  /*right and left socket descriptors*/
-    int openrd =0; /* indicates open (1) right connection, otherwise (0)*/
-    int openld = 0;    /* indicates open(1) left connection, otherwise (0)*/
+    int openrd = 1; /* indicates open (1) right connection, otherwise (0)*/
+    int openld = 1;    /* indicates open(1) left connection, otherwise (0)*/
     int maxfd;
     int desc = -1;
 
@@ -242,11 +242,13 @@ WSAStartup(0x0101, &wsaData);
                 }
                 break;
             case 'l':
-                flags->noleft = 1;
+                openld = 0;
+                flags->noleft = 1;                
                 printf("noLeft\n");
                 break;
 
             case 'r':
+                openrd = 0;
                 flags->noright = 2;
                 flags->dsplr = 0;
                 flags->dsprl = 1;
@@ -377,6 +379,7 @@ WSAStartup(0x0101, &wsaData);
         case 0:
             printf("Middle piggy\n");
 
+            
             pigopt =2;
             parentrd = sock_init(flags, pigopt, 0, flags->rrport, flags->rraddr, right, host);
 
@@ -554,7 +557,7 @@ WSAStartup(0x0101, &wsaData);
                         // read from array and pass into flagfunction
                         for(x = 0; x < readLines; ++x){
                             printf("%s\n", output[x]);
-                            n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, right, lconn);
+                            n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, lconn, right);
 
                             if (n < 0) {
                                 printf("invalid command\n");
@@ -574,8 +577,7 @@ WSAStartup(0x0101, &wsaData);
 
                         printf("\n");
                         printf("%s\n", buf);
-                        n = flagsfunction(flags, buf, sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, right,
-                                          lconn);
+                        n = flagsfunction(flags, buf, sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd,                                       lconn, right);
 
                         if (n < 0) {
                             printf("invalid command\n");
@@ -651,7 +653,7 @@ WSAStartup(0x0101, &wsaData);
                 // printf("Message loooped left successfully...\n");
             }
             /* Check if data needs to be forwarded */
-            if(flags->loopr != 1 && flags->position <= 1 ){
+            if(flags->loopl != 1 && flags->position <= 1 ){
                 printf("forwarding message...\n");
                 n = send(parentrd, buf, sizeof(buf), 0);
 
@@ -694,7 +696,7 @@ WSAStartup(0x0101, &wsaData);
                     printf("%c", buf[0]);
                 }
 
-                if(flags->loopl ==1){
+                if(flags->loopr ==1){
                     n = send(parentrd, buf, sizeof(buf), 0);
                     if(n < 0){
                         printf("send right error\n");
@@ -707,7 +709,7 @@ WSAStartup(0x0101, &wsaData);
                 }
 
                 /* Data only right forwarded if middle piggy */
-                if(flags->loopl != 1 && flags->position == 0){
+                if(flags->loopr != 1 && flags->position == 0){
                     n = send(desc, buf, sizeof(buf), 0);
                     if(n < 0){
                         printf("send left error\n");
