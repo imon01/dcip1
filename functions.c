@@ -30,6 +30,10 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #endif
+
+struct hostent;
+struct sockaddr_in;
+
 /*
 *Function:  
 *       number
@@ -41,8 +45,6 @@
 *Returns: 
 *       pseudo boolean if the string is all digits 1, else -1
 */
-struct hostent;
-struct sockaddr_in;
 int number(char*str){
     
         int i = 0;
@@ -65,20 +67,7 @@ int number(char*str){
 }//end number
 
 
-/*
-*Function:  
-*           sock_init
-* 
-*Description: 
-*           Creates the appropriate socket descriptor for a piggy
-* 
-*Relavent Arguments:
-*           pigopt 1 -- listen socket
-*           pigopt 2 --connect socket
-* 
-*Returns : 
-*           socket descriptor
-*/
+
 
 /*
 *Function:  
@@ -106,18 +95,18 @@ int max(int a, int b){
 
 /*
 *Function:  
-*           getip
+*           sock_init
 * 
 *Description: 
-*           compares value of two integers
+*           Creates the appropriate socket descriptor for a piggy
 * 
 *Relavent Arguments:
+*           pigopt 1 -- listen socket
+*           pigopt 2 --connect socket
 * 
 *Returns : 
-*           max of two integers
+*           socket descriptor
 */
-
-
 int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct sockaddr_in conn, struct hostent *host ){
     
     
@@ -270,15 +259,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             }        
         }
         
-        /* 
-         *
-         * 
-         *
-         *
-         *
-         *
-         *        
-         */
+        /* */
         if (strncmp(command, "persl", len) == 0) {
             value = 2;
             flags->persl = 1;
@@ -310,18 +291,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             printf("drop right\n");
         }            
         
-        /*
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         */
+        /* */
         if (strncmp(command, "right", len) == 0){    
             value = 1;                
             printf("%s:%hu", flags->lladdr, flags->llport);

@@ -79,6 +79,13 @@ Note:
 #define QLEN 6 /* size of request queue */
 #define MAXSIZE 1000
 
+
+/* For Windows OS ?*/
+#ifdef WIN32
+WSADATA wsaData;
+WSAStartup(0x0101, &wsaData);
+#endif
+
 extern int errno;
 char localhost[] = "localhost"; /* default host name */
 const char * DROPL = "REMOTE-LEFT-DROP";
@@ -90,7 +97,7 @@ struct sockaddr_in right; /* structure to hold right address */
 struct sockaddr_in lconn; /* structure to hold left connnecting address */
 
 static struct option long_options[] =
-        {
+{
                 {"s",  optional_argument, NULL, 'a'},
                 {"noleft",  optional_argument, NULL, 'l'},
                 {"noright", optional_argument, NULL, 'r'},
@@ -102,17 +109,23 @@ static struct option long_options[] =
                 {"rraddr",  required_argument, NULL, 'z'},
                 {"rrport",  optional_argument, NULL, 'k'},
                 {NULL, 0,                      NULL, 0}
-        };
+};
 
 
-
-
+/*
+*Function:  
+*       main
+* 
+*Description: 
+*       Piggybacking socket connections
+* 
+* 
+*Returns: 
+*       Nothing of relevence to program specification      
+* 
+*/
 int main(int argc, char * argv[]) {
 
-#ifdef WIN32
-    WSADATA wsaData;
-WSAStartup(0x0101, &wsaData);
-#endif
 
     static struct termios oldt, newt;
     tcgetattr( STDIN_FILENO, &oldt);
@@ -131,12 +144,12 @@ WSAStartup(0x0101, &wsaData);
     int indexptr; /*generic ponter for getopt_long_only API*/
     char * line = NULL; /* read line by line */
 
-    int parentrd =-1; /*right and left socket descriptors*/
-    int parentld = -1;  /*right and left socket descriptors*/
-    int openrd = 1; /* indicates open (1) right connection, otherwise (0)*/
-    int openld = 1;    /* indicates open(1) left connection, otherwise (0)*/
     int maxfd;
-    int desc = -1;
+    int desc     = -1;    
+    int parentrd = -1; /*right and left socket descriptors*/
+    int parentld = -1;  /*right and left socket descriptors*/
+    int openrd   =  1; /* indicates open (1) right connection, otherwise (0)*/
+    int openld   =  1;    /* indicates open(1) left connection, otherwise (0)*/
 
     struct addrinfo hints, *infoptr; /*used for getting connecting right piggy if give DNS*/
     struct addrinfo *p;
@@ -164,8 +177,8 @@ WSAStartup(0x0101, &wsaData);
 
     /* run through tokenizer*/
     int x;
-    char delimiter[] = " ";
     char *word2, *end;
+    char delimiter[] = " ";    
     int inputLength = strlen(buf);
     char *inputCopy = (char *) calloc(inputLength + 1, sizeof(char));    
     int readLines;
@@ -176,16 +189,16 @@ WSAStartup(0x0101, &wsaData);
     flags = malloc(sizeof(icmd));
 
     
-    flags->noleft = 0;    
+    flags->noleft  = 0;    
     flags->noright = 0;
-    flags->rraddr = NULL; /* hold addresses of left and right connect IP adresses */
-    flags->llport = PROTOPORT; /*left protocol port number */
-    flags->rrport = PROTOPORT;  /*right protocol port number */    
-    flags->dsplr = 1; /* display left to right data, default if no display option provided */
-    flags->dsprl = 0; /* display right  to left data */
-    flags->loopr = 0; /* take data that comes from the left and send it back to the left */
-    flags->loopl = 0; /* take data that comes in from the right and send back to the right */
-    
+    flags->rraddr  = NULL; /* hold addresses of left and right connect IP adresses */
+    flags->llport  = PROTOPORT; /*left protocol port number */
+    flags->rrport  = PROTOPORT;  /*right protocol port number */    
+    flags->dsplr   = 1; /* display left to right data, default if no display option provided */
+    flags->dsprl   = 0; /* display right  to left data */
+    flags->loopr   = 0; /* take data that comes from the left and send it back to the left */
+    flags->loopl   = 0; /* take data that comes in from the right and send back to the right */
+    flags->output  = 0
     
     
     /*********************************/
@@ -501,13 +514,12 @@ WSAStartup(0x0101, &wsaData);
 
                             if(ch == 27){
                                 break;
-
                             }else{
                                 buf[0] = (char) ch;
-                                putchar(ch);
-                                if(flags->position <=1){
-                                    if(openrd){
-                                        printf("right send...\n");
+                                //putchar(ch);
+                                if(openrd){
+                                    if(flags){
+                                       // printf("right send...\n");
                                         n = send(parentrd, buf, sizeof(buf), 0);
                                                                                 
                                         if( n < 0){
@@ -522,7 +534,7 @@ WSAStartup(0x0101, &wsaData);
                                             break;
                                         }
                                         else{
-                                            printf("message sent\n");
+                                          //  printf("message sent\n");
                                         }
                                     }
                                 }
@@ -752,7 +764,7 @@ WSAStartup(0x0101, &wsaData);
         if( FD_ISSET(desc, &readset)){
             bzero(buf, sizeof(buf));
             n = recv(desc, buf, sizeof(buf), 0);
-
+            printf("%s\n", buf);
             if(n < 0){
                 printf("recv left error \n");
                 break;
