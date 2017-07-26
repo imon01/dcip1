@@ -507,6 +507,7 @@ WSAStartup(0x0101, &wsaData);
                                 putchar(ch);
                                 if(flags->position <=1){
                                     if(openrd){
+                                        printf("right send...\n");
                                         n = send(parentrd, buf, sizeof(buf), 0);
                                                                                 
                                         if( n < 0){
@@ -514,13 +515,15 @@ WSAStartup(0x0101, &wsaData);
 
                                             break;
                                         }
-                                        if(n == 0){
+                                        else if(n == 0){
                                             /* Here, if persr is set, we will attempt*/
                                             /*  reestablish the connection           */
                                             printf("1: right connection closed...\n");
                                             break;
                                         }
-                                        printf("message sent\n");
+                                        else{
+                                            printf("message sent\n");
+                                        }
                                     }
                                 }
                                 else{
