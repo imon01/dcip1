@@ -81,6 +81,7 @@ Note:
 
 extern int errno;
 char localhost[] = "localhost"; /* default host name */
+const char * DROPL = "REMOTE-LEFT-DROP";
 char * filename = "scriptin.txt"; // set default definition for filename
 struct hostent *host; /* pointer to a host table entry */
 struct addrinfo hints, *infoptr; /*used for getting connecting right piggy if give DNS*/
@@ -384,6 +385,10 @@ WSAStartup(0x0101, &wsaData);
     FD_ZERO(&masterset);
     FD_SET(0,& masterset);
 
+    
+    /*********************************/
+    /*  Piggy setup                  */
+    /*********************************/       
     switch (flags->position){
 
         /* Middle piggy */
@@ -450,6 +455,10 @@ WSAStartup(0x0101, &wsaData);
     }
     /*end switch */
 
+    
+    /****************************************************/
+    /*  Main loop performing network interaction        */
+    /****************************************************/       
 
 
     /* Since the piggy position is at least 0 and less than 3*/
@@ -459,19 +468,22 @@ WSAStartup(0x0101, &wsaData);
     printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
 
     while(1){
+        /* The size of masterset is dynamic throughout runtime */
         memcpy( &readset, &masterset, sizeof(masterset));
 
-        /**/
+        /* Seeing which descriptors are ready*/
         n = select(maxfd +1, &readset, NULL, NULL, NULL);
         if(n < 0){
             printf("select error \n");
             break;
         }
 
-        /*Reading from standard in*/
-        /* When creating the socket descriptors, we
-        *  already ensured that parentrd >0 and
-        *  therfore don't need addition checks
+        /* Standard in descriptor ready
+        * 
+        * Notes:
+        *   When creating the socket descriptors, 
+        *   we already ensured that parentrd > 0,
+        *   therfore don't need addition checks
         *   durring its use.
         */
         if( FD_ISSET(0, &readset)){
@@ -529,13 +541,13 @@ WSAStartup(0x0101, &wsaData);
                         printf("no open sockets..\n");
                     }
                     break;
-                    /* q*/
+                    /* q quit*/
                 case 113:
                     bzero(buf, sizeof(buf));
                     printf("exiting\n");
                     tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
                     return 0;
-                    /* : */
+                    /* : interactive commands*/
                 case 58:
                     bzero(buf, sizeof(buf));
                     i = 0;
@@ -558,10 +570,10 @@ WSAStartup(0x0101, &wsaData);
                         strtok_r(inputCopy, delimiter, &end);
                         word2 = strtok_r(NULL, delimiter, &end);
 
-                        /* get commands from fileread*/
+                        /* Get commands from fileread*/
                         readLines = fileRead(word2, output);
 
-                        /* read from array and pass into flagfunction */
+                        /* Read from array and pass into flagfunction */
                         for(x = 0; x < readLines; ++x){
                             printf("%s\n", output[x]);
                             n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, lconn, right);
@@ -608,7 +620,7 @@ WSAStartup(0x0101, &wsaData);
                                         buf[0]= '\0';
                                         strncat(buf, "REMOTE-LEFT-DROP", sizeof(buf));
                                         n = send(desc, buf, sizeof(buf), 0);      
-                                        
+                                        openld = 0;
                                         if(n < 0){
                                             continue;
                                         }
@@ -618,6 +630,7 @@ WSAStartup(0x0101, &wsaData);
                                     
                                 /* dropr*/
                                 case 5:
+                                    /* parentrd socket already closed in flagsfunction*/
                                     if(parentrd > 0){
                                         FD_CLR(parentrd, &masterset);
                                     }
@@ -644,6 +657,7 @@ WSAStartup(0x0101, &wsaData);
                                         FD_SET(desc, &masterset);
                                     }
                                     break;
+                                    
                                 /* persr, make reconnection if necessary*/
                                 case 3:
                                     if(flags->position < 2 && !FD_ISSET(parentrd, &masterset) ){
@@ -682,6 +696,8 @@ WSAStartup(0x0101, &wsaData);
                                     break;
                                 /* dropr*/
                                 case 5:
+                                    
+                                    /* parentrd socket already closed in flagsfunction*/                                    
                                     if(parentrd > 0){
                                         FD_CLR(parentrd, &masterset);
                                     }
@@ -698,8 +714,10 @@ WSAStartup(0x0101, &wsaData);
 
 
         /*
-         * Accept incoming left connection
-         *
+         * Left side accepting descriptor ready
+         * 
+         * Notes:
+         *  Accept incoming left connection         
          */
         if(FD_ISSET(parentld, &readset)){
             len = sizeof(lconn);
@@ -716,8 +734,10 @@ WSAStartup(0x0101, &wsaData);
             printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
         }
 
-        /* Incoming left side connection */
-        /* When creating the socket descriptors, we
+        /* Left side descriptor ready 
+        * 
+        * Notes:
+        *   When creating the socket descriptors, we
         *   already ensured that desc >0; therfore
         *   don't need addition checks during its use.
         *   Also only the tail and middle piggies have
@@ -734,35 +754,41 @@ WSAStartup(0x0101, &wsaData);
             }
             if(n ==0){
                 printf("left connection closed, reestablish later...\n");
-                FD_CLR(desc, &masterset);
-                //break;
+                FD_CLR(desc, &masterset);            
             }
-            // printf("Message recv successfully...\n");
-
+            
+/*            
             if(flags->position ==2){
                 printf("%c", buf[0]);
             }
+*/
+
             /* If dsprl is set we print data coming frm the right*/
             if(flags->dsplr == 1){
                 printf("%c", buf[0]);
                 
             }
-
+            
+            /* Loop data right if set*/
             if(flags->loopr ==1){
                 n = send(desc, buf, sizeof(buf), 0);
+                    
                 if(n < 0){
                     printf("send left error\n");
                     break;
                 }
                 if( n == 0){
-                    
+                    /* Set reconnect flag if persl is set*/
+                    if(flags->persl){
+                        flags->reconl = 1;
+                    }
                     break;
                 }
-                // printf("Message loooped left successfully...\n");
             }
+            
             /* Check if data needs to be forwarded */
             if(openrd){
-                printf("forwarding message...\n");
+                //printf("forwarding message...\n");
                 n = send(parentrd, buf, sizeof(buf), 0);
 
                 if(n < 0){
@@ -770,35 +796,50 @@ WSAStartup(0x0101, &wsaData);
                     break;
                 }
                 if( n == 0){
-                    printf("3: right connection closed, reestablish later...\n");
+                    /* Set reconnect flag if persl is set*/
+                    if(flags->persl){
+                        flags->reconl = 1;
+                    }
                     break;
                 }
             }
         }
         /* End ready  desc*/
 
-        /* Incoming right side connection */
-        /* FD_ISSET will be true for the head
-        * piggy and middle piggies, therfore we
-        * don't check for -noright
+        
+        
+        /* Right side descriptor ready         
+        * 
+        * Notes:
+        *   FD_ISSET will be true for the head
+        *   piggy and middle piggies, therfore we
+        *   don't check for -noright
         */
-        if( FD_ISSET(parentrd, &readset)){
-            // printf("Incoming right side data...\n");
+        if( FD_ISSET(parentrd, &readset)){            
             bzero(buf, sizeof(buf));
-
             n = recv(parentrd, buf, sizeof(buf), 0);
             if(n < 0){
                 printf("recv right error\n");
                 break;
             }
+            
             if( n == 0){
                 openrd =0;
                 //printf("right connection closed, reestablish later...\n");
                 if(flags->persr ==1){
-                    printf("reestablish...\n");
+                    /* Reestablishing done at end of loop*/
+                    flags->persr = 2;
                 }
                 /*do something*/
-            }else{
+            }
+            /* Check for constant string*/
+            else if( strn(buf, DROPL, sizeof(buf) ) ){
+                openrd = 0;
+                printf("Right connection closed...\n");
+            }
+            else{
+                
+                
                 /* If dsprl is set we print data coming frm the right*/
                 if(flags->dsprl ==1){
                     printf("%c", buf[0]);
@@ -823,7 +864,9 @@ WSAStartup(0x0101, &wsaData);
                         printf("send left error\n");
                         break;
                     }
+                    
                     if( n == 0){
+                        flags->persl = 2;
                         printf("left connection closed, reestablish later...\n");
                         break;
                     }
@@ -837,8 +880,7 @@ WSAStartup(0x0101, &wsaData);
          */
         if(flags->persr == 2){
             printf("right side reconnecting..\n ");
-            pigopt = 2;     
-            
+            pigopt = 2;
             
             parentrd = sock_init(flags,pigopt, 0, flags->rrport, flags->rraddr, right, host);  
             if(parentrd >0 ){
@@ -851,7 +893,11 @@ WSAStartup(0x0101, &wsaData);
                 printf("One right descriptor added to fd_set, right descriptor\n");                                        
                 printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
             }
-        }                
+        }
+        
+        if(flags->reconl){
+            printf("left side reconnecting..\n ");
+        }
     }
 
     tcsetattr( STDIN_FILENO, TCSANOW, &oldt);

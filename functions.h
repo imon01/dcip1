@@ -10,14 +10,13 @@ typedef struct flags{
     unsigned char noright;
     unsigned char output; /* output left (0), output right (0)*/
     unsigned char dsplr;
-    unsigned char dsprl;    
+    unsigned char reconl;
+    unsigned char dsprl;
     unsigned char display;  
     unsigned char dropr;  
     unsigned char dropl;
     unsigned char persl;
-    unsigned char persr;    
-    unsigned char right; 
-    unsigned char left;
+    unsigned char persr;
     unsigned char loopr;
     unsigned char loopl;
     int llport;
@@ -26,8 +25,6 @@ typedef struct flags{
     char * lladdr;
     char * source; /* Source file*/   
 }icmd;
-
-
 
 
 int number(char*);
