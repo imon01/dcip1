@@ -13,8 +13,10 @@
 #include <unistd.h>  
 #include <arpa/inet.h>
 #include <net/if.h>
-#include <sys/types.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/select.h>
 #include <ifaddrs.h>
 
 #ifndef unix
@@ -422,5 +424,5 @@ char *strdup(const char *str){
 *               function.
 */
 
-void connectopt(icmd * flags, fd_set *masterset,  int *openld, int *openrd, int *desc, int *rd, struct sockaddr_in conn, struct hosten *host){        
-}
+// void connectopt(icmd * flags, fd_set *masterset,  int *openld, int *openrd, int *desc, int *rd, struct sockaddr_in conn, struct hosten *host){        
+// }

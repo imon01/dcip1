@@ -43,7 +43,7 @@ int sock_init(icmd *, int, int, int, char *, struct sockaddr_in , struct hostent
 
 int flagsfunction(icmd *, char *, int , int, int *, int *, int *, int *, struct sockaddr_in, struct sockaddr_in);
 
-void connectopt(icmd *, fd_set *,  int *, int *, int *, int *, struct sockaddr_in, struct hosten *);
+//void connectopt(icmd *, fd_set *,  int *, int *, int *, int *, struct sockaddr_in, struct hosten *);
 
 #endif
     

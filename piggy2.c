@@ -220,7 +220,7 @@ WSAStartup(0x0101, &wsaData);
                 /* read file */
                 if (argv[2] != NULL) {
 
-                    *filename = argv[2];
+                    filename = argv[2];
                     readLines = fileRead(filename, output);
                     /* read from array and pass into flag function*/
                     for(x = 0; x < readLines; ++x){
@@ -640,7 +640,7 @@ WSAStartup(0x0101, &wsaData);
                                     break;
                                 /* persl*/                                    
                                 case 2:   
-                                    if(flags->position <2 0 && !openld){
+                                    if( (flags->position < 2) && !openld){
                                         FD_SET(desc, &masterset);
                                     }
                                     break;
