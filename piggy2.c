@@ -468,56 +468,55 @@ WSAStartup(0x0101, &wsaData);
             switch(ch){
                 /*i*/
                 case 105:
-                    printf("Enter Insert\n");
-                    //printf("position%d", parentrd);
-                    /* for building program, send all data right*/
+                    
+                    if(openrd || openld){
+                        printf("Enter Insert\n");
+        
+                        while(1){
+                            ch = getchar();
 
-                    //while(ch = getchar() != EOF && getchar() != '\n'){
-                    while(1){
-                        //while((ch = getchar()) != 27){
+                            if(ch == 27){
+                                break;
 
-                        ch = getchar();
+                            }else{
+                                buf[0] = (char) ch;
+                                putchar(ch);
+                                if(flags->position <=1){
+                                    if(openrd){
+                                        n = send(parentrd, buf, sizeof(buf), 0);
+                                    }
+                                    if( n < 0){
+                                        printf("send parent error");
 
-                        if(ch == 27){
-                            break;
-
-                        }else{
-                            buf[0] = (char) ch;
-                            putchar(ch);
-                            if(flags->position <=1){
-                                if(openrd){
-                                    n = send(parentrd, buf, sizeof(buf), 0);
+                                        break;
+                                    }
+                                    if(n == 0){
+                                        /* Here, if persr is set, we will attempt*/
+                                        /*  reestablish the connection           */
+                                        printf("1: right connection closed...\n");
+                                        break;
+                                    }
+                                    //printf("Message sent successfully...\n");
                                 }
-                                if( n < 0){
-                                    printf("send parent error");
+                                else{
+                                    /* Send data to the left, this is a tail piggy */
+                                    n = send(desc, buf, sizeof(buf), 0);
 
-                                    break;
-                                }
-                                if(n == 0){
-                                    /* Here, if persr is set, we will attempt*/
-                                    /*  reestablish the connection           */
-                                    printf("1: right connection closed...\n");
-                                    break;
-                                }
-                                //printf("Message sent successfully...\n");
-                            }
-                            else{
-                                /* Send data to the left, this is a tail piggy */
-                                n = send(desc, buf, sizeof(buf), 0);
-
-                                if( n< 0){
-                                    printf("send left error \n");
-                                    break;
-                                }
-                                if(n ==0){
-                                    printf("left connection closed, reestablish later...\n");
-                                    break;
+                                    if( n< 0){
+                                        printf("send left error \n");
+                                        break;
+                                    }
+                                    if(n ==0){
+                                        printf("left connection closed, reestablish later...\n");
+                                        break;
+                                    }
                                 }
                             }
-                        }
+                        }                    
+                    }                    
+                    else{
+                        printf("no open sockets..\n");
                     }
-                    printf("\n");
-
                     break;
                     /* q*/
                 case 113:
@@ -531,8 +530,7 @@ WSAStartup(0x0101, &wsaData);
                     i = 0;
                     putchar(':');
                     printf("Enter command mode\n");
-
-                    //while( (ch = getchar()) != 10){
+                    
                     while(1){
                         ch = getchar();
                         if(ch == 10){
@@ -551,37 +549,53 @@ WSAStartup(0x0101, &wsaData);
                         strtok_r(inputCopy, delimiter, &end);
                         word2 = strtok_r(NULL, delimiter, &end);
 
-                        // get commands from fileread
-                        int readLines = fileRead(word2, output);
+                        /* get commands from fileread*/
+                        readLines = fileRead(word2, output);
 
-                        // read from array and pass into flagfunction
+                        /* read from array and pass into flagfunction */
                         for(x = 0; x < readLines; ++x){
                             printf("%s\n", output[x]);
                             n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, lconn, right);
 
-                            if (n < 0) {
-                                printf("invalid command\n");
-                            }
+                            switch(n){
+                                case 1:
+                                    break;
+                                case 2:
+                                    break;
+                                case 3:
+                                    break;
+                                case 4:
+                                    break;
+                                case 5:
+                                    break;                                
+                                default:
+                                    printf("invalid command\n");                                
+                            }                         
 
-                            free(output[x]);//Discard after being used
+                            free(output[x]);
                         }
 
-
-
-                        if (n < 0) {
-                            printf("invalid command\n");
-                        }
                         break;
-                    }else {
-
-
-                        printf("\n");
-                        printf("%s\n", buf);
+                    }else{                        
+                        //printf("\n%s\n", buf);
                         n = flagsfunction(flags, buf, sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd,                                       lconn, right);
 
-                        if (n < 0) {
-                            printf("invalid command\n");
+                        
+                        switch(n){
+                            case 1:
+                                break;
+                            case 2:
+                                break;
+                            case 3:
+                                break;
+                            case 4:
+                                break;
+                            case 5:
+                                break;                                
+                            default:
+                            printf("invalid command\n");                                
                         }
+                        
                         break;
                     }
             }
@@ -637,7 +651,7 @@ WSAStartup(0x0101, &wsaData);
             /* If dsprl is set we print data coming frm the right*/
             if(flags->dsplr == 1){
                 printf("%c", buf[0]);
-                //fputs(buf, stdout);
+                
             }
 
             if(flags->loopr ==1){
@@ -653,7 +667,7 @@ WSAStartup(0x0101, &wsaData);
                 // printf("Message loooped left successfully...\n");
             }
             /* Check if data needs to be forwarded */
-            if(flags->loopl != 1 && flags->position <= 1 ){
+            if(openrd){
                 printf("forwarding message...\n");
                 n = send(parentrd, buf, sizeof(buf), 0);
 

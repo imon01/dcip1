@@ -205,8 +205,12 @@ int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct s
 *Returns : 
 *           -1  invalid interactive command option
 *            1  valid interactive command 
+*            2  reserved for persl
+*            3  reserved for persr
+*            4  reserved for dropl
+*            5  reserver for dropr
 */
-int flagsfunction(icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right){    
+int flagsfunction(fd_set * fdset, icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right){    
         int value = -1;
         
         if (strncmp(command, "outputl", len) == 0) {        
@@ -245,7 +249,8 @@ int flagsfunction(icmd  * flags, char * command, int len ,int position, int * op
         if (strncmp(command, "dsprl", len) == 0) {
             value = 1;     
             flags->dsprl = 1;
-            flags->dsplr = 0;                    
+            flags->dsplr = 0; 
+            
             printf("display right to left stream\n");
         }
         
@@ -260,27 +265,30 @@ int flagsfunction(icmd  * flags, char * command, int len ,int position, int * op
         }
         
         if (strncmp(command, "dropr", len) == 0) {
-            value = 1;
+            value = 5;
             flags->dropr = 1;
+            *openrd = 0;
             shutdown( *rd, 2);
             printf("drop right\n");
         }
         
         if (strncmp(command, "dropl", len) == 0) {
             value = 2;
-            flags->dropl = 1;        
+            flags->dropl = 1;          
             printf("drop left\n");
         }
         
         if (strncmp(command, "persl", len) == 0) {
             value = 1;
             flags->persl = 1;
+            *openld = 1;
             printf("persl\n");
         }
         
         if (strncmp(command, "persr", len) == 0) {        
             value = 1;
             flags->persr = 1;
+            *openrd = 1;
             printf("persrl\n");
         }
         
