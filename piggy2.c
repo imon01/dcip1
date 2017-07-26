@@ -752,7 +752,7 @@ WSAStartup(0x0101, &wsaData);
         if( FD_ISSET(desc, &readset)){
             bzero(buf, sizeof(buf));
             n = recv(desc, buf, sizeof(buf), 0);
-
+            printf("%s\n", buf);
             if(n < 0){
                 printf("recv left error \n");
                 break;
