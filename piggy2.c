@@ -567,6 +567,74 @@ WSAStartup(0x0101, &wsaData);
                             n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, lconn, right);
 
                             switch(n){
+                                
+                                /* valid command*/                                
+                                case 1:
+                                    break;
+                                    
+                                /* persl*/
+                                case 2:   
+                                    if(flags->position <2 0 && !openld){
+                                        FD_SET(desc, &masterset);
+                                    }
+                                    break;
+                                    
+                                /* persr, make reconnection if necessary*/
+                                case 3:
+                                    if(flags->position < 2 && !FD_ISSET(parentrd, &masterset) ){
+                                        printf("right side reconnecting..\n ");
+                                        pigopt = 2;                                                                                     
+                                        parentrd = sock_init(flags,pigopt, 0, flags->rrport, flags->rraddr, right, host);                                                                                    
+                                        
+                                        if(parentrd > 0){
+                                            openrd = 1;
+                                            openld = 0;
+                                            printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
+                                            maxfd = max(desc, parentld);
+                                            maxfd = max(maxfd, parentrd);
+                                            FD_SET(parentrd, &masterset);
+                                            printf("One right descriptor added to fd_set, right descriptor\n");                                        
+                                            printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
+                                        }
+                                        else{
+                                            flags->persr = 2;
+                                        }
+                                    }
+                                    break;
+                                
+                                /* dropl*/                                                                    
+                                case 4:
+                                    if( desc > 0 ){
+                                        buf[0]= '\0';
+                                        strncat(buf, "REMOTE-LEFT-DROP", sizeof(buf));
+                                        n = send(desc, buf, sizeof(buf), 0);      
+                                        
+                                        if(n < 0){
+                                            continue;
+                                        }
+                                        FD_CLR(desc, & masterset);
+                                    }
+                                    break;
+                                    
+                                /* dropr*/
+                                case 5:
+                                    if(parentrd > 0){
+                                        FD_CLR(parentrd, &masterset);
+                                    }
+                                    break;
+                                    
+                                default:
+                                    printf("invalid command\n");                                
+                            }
+                            free(output[x]);
+                        }
+
+                        break;
+                    }/* End reading commands from bufCommand*/
+                    else{                                                
+                        n = flagsfunction(flags, buf, sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, lconn, right);
+                        
+                            switch(n){
                                 /* valid command*/
                                 case 1:
                                     break;
@@ -580,22 +648,25 @@ WSAStartup(0x0101, &wsaData);
                                 case 3:
                                     if(flags->position < 2 && !FD_ISSET(parentrd, &masterset) ){
                                         printf("right side reconnecting..\n ");
-                                        pigopt = 2;     
+                                        pigopt = 2;                                                                                     
+                                        parentrd = sock_init(flags,pigopt, 0, flags->rrport, flags->rraddr, right, host);                                                                                    
                                         
-                                        do{
-                                            parentrd = sock_init(flags,pigopt, 0, flags->rrport, flags->rraddr, right, host);                                                                                    
-                                        }while(parentrd < 0);
-
-                                        openrd = 1;
-                                        openld = 0;
-                                        printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
-                                        maxfd = max(desc, parentld);
-                                        maxfd = max(maxfd, parentrd);
-                                        FD_SET(parentrd, &masterset);
-                                        printf("One right descriptor added to fd_set, right descriptor\n");                                        
-                                        printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
+                                        if(parentrd > 0){
+                                            openrd = 1;
+                                            openld = 0;
+                                            printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
+                                            maxfd = max(desc, parentld);
+                                            maxfd = max(maxfd, parentrd);
+                                            FD_SET(parentrd, &masterset);
+                                            printf("One right descriptor added to fd_set, right descriptor\n");                                        
+                                            printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
+                                        }
+                                        else{
+                                            flags->persr = 2;
+                                        }
                                     }
                                     break;
+                                
                                 /* dropl*/                                                                    
                                 case 4:
                                     if( desc > 0 ){
@@ -618,27 +689,6 @@ WSAStartup(0x0101, &wsaData);
                                 default:
                                     printf("invalid command\n");                                
                             }
-                            free(output[x]);
-                        }
-
-                        break;
-                    }else{                                                
-                        n = flagsfunction(flags, buf, sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd,                                       lconn, right);
-                        
-                        switch(n){
-                            case 1:
-                                break;
-                            case 2:
-                                break;
-                            case 3:
-                                break;
-                            case 4:
-                                break;
-                            case 5:
-                                break;                                
-                            default:
-                            printf("invalid command\n");                                
-                        }
                         
                         break;
                     }
@@ -779,8 +829,29 @@ WSAStartup(0x0101, &wsaData);
                     }
                 }
             }
-        }
-        /* End ready parentrd*/
+        }/* End ready parentrd*/
+        
+        /* Try right reconnection if unsuccessful*/
+        /* persr is only ever set to 2 when a reconnect
+         * fails after calling flagsfunction
+         */
+        if(flags->persr == 2){
+            printf("right side reconnecting..\n ");
+            pigopt = 2;     
+            
+            
+            parentrd = sock_init(flags,pigopt, 0, flags->rrport, flags->rraddr, right, host);  
+            if(parentrd >0 ){
+                flags->persr = 1;
+                openrd = 1;             
+                printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
+                maxfd = max(desc, parentld);
+                maxfd = max(maxfd, parentrd);
+                FD_SET(parentrd, &masterset);
+                printf("One right descriptor added to fd_set, right descriptor\n");                                        
+                printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
+            }
+        }                
     }
 
     tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
