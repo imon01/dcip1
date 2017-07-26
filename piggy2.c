@@ -833,7 +833,7 @@ WSAStartup(0x0101, &wsaData);
                 /*do something*/
             }
             /* Check for constant string*/
-            else if( strn(buf, DROPL, sizeof(buf) ) ){
+            else if( strncmp(buf, DROPL, sizeof(buf) ) ){
                 openrd = 0;
                 printf("Right connection closed...\n");
             }
