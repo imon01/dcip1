@@ -16,7 +16,7 @@ typedef struct flags{
     unsigned char dropl;
     unsigned char persl;
     unsigned char persr;    
-    unsigned char right;
+    unsigned char right; 
     unsigned char left;
     unsigned char loopr;
     unsigned char loopl;
@@ -24,7 +24,7 @@ typedef struct flags{
     int rrport;
     char * rraddr;   
     char * lladdr;
-    char * source;        
+    char * source; /* Source file*/   
 }icmd;
 
 
@@ -43,7 +43,7 @@ int sock_init(icmd *, int, int, int, char *, struct sockaddr_in , struct hostent
 
 int flagsfunction(icmd *, char *, int , int, int *, int *, int *, int *, struct sockaddr_in, struct sockaddr_in);
 
-
+void connectopt(icmd *, fd_set *,  int *, int *, int *, int *, struct sockaddr_in, struct hosten *);
 
 #endif
     

@@ -574,7 +574,7 @@ WSAStartup(0x0101, &wsaData);
                                     
                                 /* persl*/
                                 case 2:   
-                                    if(flags->position <2 0 && !openld){
+                                    if(  (flags->position <2)  && !openld){
                                         FD_SET(desc, &masterset);
                                     }
                                     break;

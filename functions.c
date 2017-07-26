@@ -422,5 +422,5 @@ char *strdup(const char *str){
 *               function.
 */
 
-void connectopt(icmd * flags, *fd_set masterset, , int *openld, int *openrd, int *desc, int *rd, struct sockaddr_in conn, struct hosten *host){        
+void connectopt(icmd * flags, fd_set *masterset,  int *openld, int *openrd, int *desc, int *rd, struct sockaddr_in conn, struct hosten *host){        
 }
