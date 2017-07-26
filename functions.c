@@ -328,8 +328,8 @@ int flagsfunction(icmd  * flags, char * command, int len ,int position, int * op
         }
         if (strncmp(command, "loopl", len) == 0) {        
             value = 1;
-            flags->loopr = 1;
-            printf("loopr\n");
+            flags->loopl = 1;
+            printf("loopl\n");
         }    
         return value;
 }
