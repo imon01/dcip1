@@ -331,13 +331,15 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         }
         
         if (strncmp(command, "loopr", len) == 0) {
-            value = 1;
+            value = 1;            
             flags->loopr = 1;
+            flags->output = 0;
             printf("loopr\n");
         }
         if (strncmp(command, "loopl", len) == 0) {        
             value = 1;
             flags->loopl = 1;
+            flags->output = 1;
             printf("loopl\n");
         }
         

@@ -526,6 +526,7 @@ int main(int argc, char * argv[]) {
                             }else{
                                 buf[0] = (char) ch;
                                 
+                                /* Preconditions for sending data to the right, output == 0 */
                                 if(flags->output && openrd){                                                                              
                                     n = send(parentrd, buf, sizeof(buf), 0);
                                     if( n < 0){
@@ -535,12 +536,13 @@ int main(int argc, char * argv[]) {
                                     if(n == 0){
                                         /* Here, if persr is set, we will attempt*/
                                         /*  reestablish the connection           */
-                                        printf("1: right connection closed...\n");
+                                        printf("right connection closed...\n");
                                         break;
                                     }
                                 }
-                                if( !flags->output && openld){
-                                    /* Send data to the left, this is a tail piggy */
+                                
+                                /* Preconditions for sending data to the left, output == 0 */
+                                if( !flags->output && openld){                                
                                     n = send(desc, buf, sizeof(buf), 0);
 
                                     if( n< 0){
@@ -765,7 +767,7 @@ int main(int argc, char * argv[]) {
         if( FD_ISSET(desc, &readset)){
             bzero(buf, sizeof(buf));
             n = recv(desc, buf, sizeof(buf), 0);
-            printf("%s\n", buf);
+            printf("%c\n", buf[0]);
             if(n < 0){
                 printf("recv left error \n");
                 break;
@@ -775,19 +777,14 @@ int main(int argc, char * argv[]) {
                 FD_CLR(desc, &masterset);            
             }
             
-/*            
-            if(flags->position ==2){
-                printf("%c", buf[0]);
-            }
-*/
 
-            /* If dsprl is set we print data coming frm the right*/
+            /* If dsplr is set we print data coming frm the right*/
             if(flags->dsplr == 1){
-                printf("%s", buf);            
+                printf("%c", buf[0]);
             }
              
             /* Loop data right if set*/
-            if(flags->loopr ==1){
+            if(flags->loopr ){
                 n = send(desc, buf, sizeof(buf), 0);
                     
                 if(n < 0){
@@ -802,17 +799,18 @@ int main(int argc, char * argv[]) {
                     break;
                 }
             }
-            
+                        
             /* Check if data needs to be forwarded */
-            if(openrd){
-                //printf("forwarding message...\n");
+            if(openrd && !flags->loopr){                
                 n = send(parentrd, buf, sizeof(buf), 0);
 
                 if(n < 0){
+                    openrd = 0;
                     printf("send right error \n");
                     break;
                 }
                 if( n == 0){
+                    openrd = 0;
                     /* Set reconnect flag if persl is set*/
                     if(flags->persl){
                         flags->reconl = 1;
@@ -836,18 +834,18 @@ int main(int argc, char * argv[]) {
             bzero(buf, sizeof(buf));
             n = recv(parentrd, buf, sizeof(buf), 0);
             if(n < 0){
+                openrd = 0;
                 printf("recv right error\n");
                 break;
             }
             
             if( n == 0){
-                openrd =0;
-                //printf("right connection closed, reestablish later...\n");
+                openrd =0;                
                 if(flags->persr ==1){
                     /* Reestablishing done at end of loop*/
                     flags->persr = 2;
                 }
-                /*do something*/
+                break;
             }
             /* Check for constant string*/
             else if( strncmp(buf, DROPL, sizeof(buf) ) ){
@@ -855,14 +853,13 @@ int main(int argc, char * argv[]) {
                 printf("Right connection closed...\n");
             }
             else{
-                
-                
+                                
                 /* If dsprl is set we print data coming frm the right*/
-                if(flags->dsprl ==1){
+                if(flags->dsprl){
                     printf("%c", buf[0]);
                 }
 
-                if(flags->loopr ==1){
+                if(flags->loopl ==1){
                     n = send(parentrd, buf, sizeof(buf), 0);
                     if(n < 0){
                         printf("send right error\n");
@@ -874,10 +871,11 @@ int main(int argc, char * argv[]) {
                     }
                 }
 
-                /* Data only right forwarded if middle piggy */
-                if(flags->loopr != 1 && flags->position == 0){
+                /* Data only left forwarded if middle piggy */
+                if( !flags->loopl && openld){
                     n = send(desc, buf, sizeof(buf), 0);
                     if(n < 0){
+                        openld = 0;
                         printf("send left error\n");
                         break;
                     }
