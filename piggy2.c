@@ -198,7 +198,7 @@ int main(int argc, char * argv[]) {
     flags->dsprl   = 0; /* display right  to left data */
     flags->loopr   = 0; /* take data that comes from the left and send it back to the left */
     flags->loopl   = 0; /* take data that comes in from the right and send back to the right */
-    flags->output  = 0;
+    flags->output  = 1;
     
     
     /*********************************/
@@ -525,7 +525,7 @@ int main(int argc, char * argv[]) {
                                 break;
                             }else{
                                 buf[0] = (char) ch;
-                                
+                                ;
                                 /* Preconditions for sending data to the right, output == 0 */
                                 if(flags->output && openrd){                                                                              
                                     n = send(parentrd, buf, sizeof(buf), 0);
@@ -672,7 +672,7 @@ int main(int argc, char * argv[]) {
                                 case 1:
                                     break;
                                 /* persl*/                                    
-                                case 2:   
+                                case 2:
                                     if( (flags->position < 2) && !openld){
                                         FD_SET(desc, &masterset);
                                     }
