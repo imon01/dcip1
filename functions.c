@@ -2,32 +2,36 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <getopt.h>
+#include <arpa/inet.h>
 #include <ctype.h>
+/*
 #include <zconf.h>
 #include <locale.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <execinfo.h>
 #include <termios.h>
-#include <unistd.h>  
-#include <arpa/inet.h>
+#include <unistd.h>
+#include <getopt.h>
+
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/select.h>
 #include <ifaddrs.h>
-
+*/
 #ifndef unix
 #define WIN32
 #include <windows.h>
 #include <winsock.h>
 #else
+/*
 #define closesocket close
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+ */
 #include <netdb.h>
 #endif
 
@@ -258,7 +262,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
                 printf("display left\n");
             }        
         }
-        
+
         /* */
         if (strncmp(command, "persl", len) == 0) {
             value = 2;
