@@ -577,13 +577,13 @@ int main(int argc, char *argv[]) {
                         while (1) {
                             ch = getchar();
                             if(ch == 10){
-                                printf("\n");                                
+                                printf("\n");
                             }
                             else{
                                 putchar(ch);
                             }
                             if (ch == 27) {                                
-
+                                printf("\n");
                                 break;
                             } 
                             else {
@@ -672,8 +672,17 @@ int main(int argc, char *argv[]) {
 
                                     /* persl*/
                                 case 2:
-                                    if ((flags->position < 2) && !openld) {
-                                        FD_SET(desc, &masterset);
+                                    if ((flags->position < 2) && !openld) {                                                                                
+                                        buf[0] = '\0';
+                                        n = send(desc, buf, sizeof(buf), 0);
+                                                                                
+                                        if (n < 0) {
+                                            
+                                            opendld = 0;
+                                        }else{
+                                            FD_SET(desc, &masterset);
+                                            openld = 1;
+                                        }
                                     }
                                     
                                     break;
