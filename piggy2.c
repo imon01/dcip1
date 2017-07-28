@@ -599,8 +599,7 @@ int main(int argc, char *argv[]) {
                                         /*  reestablish the connection           */
                                         flags->reconl = 1;
                                         printf("right connection closed...\n");
-
-     `                                   break;
+                                        break;
                                     }
                                 }
                                 
@@ -647,10 +646,6 @@ int main(int argc, char *argv[]) {
                     }
                     
                     printf("\n");
-                    inputLength = strlen(buf);
-                    char *inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
-
-
                     inputLength = strlen(buf);
                     char *inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
                     
