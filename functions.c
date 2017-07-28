@@ -2,32 +2,36 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <getopt.h>
+#include <arpa/inet.h>
 #include <ctype.h>
+/*
 #include <zconf.h>
 #include <locale.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <execinfo.h>
 #include <termios.h>
-#include <unistd.h>  
-#include <arpa/inet.h>
+#include <unistd.h>
+#include <getopt.h>
+
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/select.h>
 #include <ifaddrs.h>
-
+*/
 #ifndef unix
 #define WIN32
 #include <windows.h>
 #include <winsock.h>
 #else
+/*
 #define closesocket close
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+ */
 #include <netdb.h>
 #endif
 
@@ -107,7 +111,7 @@ int max(int a, int b){
 *Returns : 
 *           socket descriptor
 */
-int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct sockaddr_in conn, struct hostent *host ){
+int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in conn, struct hostent *host ){
     
     
         int sd, len,n =0;        
@@ -155,11 +159,9 @@ int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct s
         }
         
         /* Connecting */
-        if(pigopt == 2){            
-                printf("getting host\n");
+        if(pigopt == 2){                
                 conn.sin_port = htons((u_short) port);
-                host = gethostbyname(addr);
-                printf("memcpy\n");
+                host = gethostbyname(addr);                
                 memcpy(&conn.sin_addr.s_addr, host->h_addr, host->h_length);
                 
                 //inet_aton(host->h_addr, &conn.sin_addr);
@@ -170,7 +172,7 @@ int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct s
                     perror("socket");
                     return -1;
                 }
-                
+                printf("(%hu, %s, %d)\n",  (u_short) port, inet_ntoa(conn.sin_addr), sd );
                 /* Connect to remote host*/
                 if( (connect(sd, (struct sockaddr * )&conn, sizeof(conn))) < 0) {
                     perror("!connect");
@@ -204,7 +206,8 @@ int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct s
 int flagsfunction( icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right){    
         int value = -1;
         /* */
-        if (strncmp(command, "outputl", len) == 0) {        
+        if (strncmp(command, "outputl", len) == 0) {  
+            value = 1;
             printf("set output to left piggy\n");
             flags->output =0;        
             flags->loopl = 0;
@@ -258,7 +261,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
                 printf("display left\n");
             }        
         }
-        
+
         /* */
         if (strncmp(command, "persl", len) == 0) {
             value = 2;
@@ -331,13 +334,15 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         }
         
         if (strncmp(command, "loopr", len) == 0) {
-            value = 1;
+            value = 1;            
             flags->loopr = 1;
+            flags->output = 0;
             printf("loopr\n");
         }
         if (strncmp(command, "loopl", len) == 0) {        
             value = 1;
             flags->loopl = 1;
+            flags->output = 1;
             printf("loopl\n");
         }
         
