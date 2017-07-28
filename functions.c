@@ -247,8 +247,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         if (strncmp(command, "dsprl", len) == 0) {
             value = 1;     
             flags->dsprl = 1;
-            flags->dsplr = 0;             
-            printf("display right to left stream\n");
+            flags->dsplr = 0;
         }
         
         /* */
@@ -281,8 +280,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         /* */
         if (strncmp(command, "dropl", len) == 0) {
             value = 4;
-            flags->dropl = 1;          
-            printf("drop left\n");
+            flags->dropl = 1;
         }   
         
         /* */
@@ -291,7 +289,6 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             flags->dropr = 1;
             *openrd = 0;
             shutdown( *rd, 2);
-            printf("drop right\n");
         }            
         
         /* */
@@ -341,9 +338,9 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         }
         if (strncmp(command, "loopl", len) == 0) {        
             value = 1;
+            *openrd = 0;
             flags->loopl = 1;
-            flags->output = 1;
-            printf("loopl\n");
+            flags->output = 1;            
         }
         
         return value;

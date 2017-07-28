@@ -676,9 +676,8 @@ int main(int argc, char *argv[]) {
                                         buf[0] = '\0';
                                         n = send(desc, buf, sizeof(buf), 0);
                                                                                 
-                                        if (n < 0) {
-                                            
-                                            opendld = 0;
+                                        if (n < 0) {                                        
+                                            openld = 0;
                                         }else{
                                             FD_SET(desc, &masterset);
                                             openld = 1;
