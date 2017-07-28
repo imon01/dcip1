@@ -94,7 +94,7 @@ WSAStartup(0x0101, &wsaData);
 //extern int errno;
 //char localhost[] = "localhost"; /* default host name */
 const char *DROPL = "REMOTE-LEFT-DROP";
-const char *CONNL = "REMOTE-LEFT-CONN";
+const char *PERSL = "REMOTE-LEFT-CONN";
 char *filename = "scriptin.txt"; // set default definition for filename
 struct hostent *host; /* pointer to a host table entry */
 //struct addrinfo hints, *infoptr; /*used for getting connecting right piggy if give DNS*/
@@ -135,6 +135,9 @@ static struct option long_options[] =
 int main(int argc, char *argv[]) {
 
 
+    /***********************************************/
+    /* Termios variables and functionalities       */
+    /***********************************************/
     static struct termios oldt, newt;
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
@@ -143,44 +146,48 @@ int main(int argc, char *argv[]) {
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
     cfmakeraw(&newt);
 
+    /***********************************************/
+    /* Use input arguments from loop to set values */
+    /***********************************************/
+    int i, n, x, len, ch;    
+    int pigopt;         /* piggy position indicating variable      */
+    int indexptr;       /* generic ponter for getopt_long_only API */
+    int desc = -1;      /* left accepted descriptor                */
+    int parentrd = -1;  /* main left  descriptors                  */
+    int parentld = -1;  /* main right descriptors                  */
+    char buf[MAXSIZE];  /* buffer for string the server sends      */
+    char *output[MAXSIZE];
+    /***********************************************/
+    /* Control flow variables                      */
+    /***********************************************/
+    int openrd = 0;     /* (1) indicates open right connection, otherwise (0)*/
+    int openld = 0;     /* (1) indicates open left  connection, otherwise (0)*/
 
-    /* Use input arguments from loop to set values*/
-    int i;
-    int n;
-    int len;
-    int ch;
-    int indexptr;       /*generic ponter for getopt_long_only API*/
-
-    int maxfd;
-    int desc = -1;
-    int parentrd = -1;  /*right and left socket descriptors*/
-    int parentld = -1;  /*right and left socket descriptors*/
     
-    /***************************/
-    /* Control flow variables */
-    /***************************/
-    int openrd = 1;     /* indicates open (1) right connection, otherwise (0)*/
-    int openld = 1;     /* indicates open(1) left connection, otherwise (0)*/
-
-    struct addrinfo hints, *infoptr; /*used for getting connecting right piggy if give DNS*/
+    /***********************************************/
+    /* Remote and host information variables       */
+    /***********************************************/
+    struct addrinfo hints, *infoptr; /* used for getting connecting right piggy if give DNS*/
     struct addrinfo *p;
     struct in_addr ip;
     struct hostent *lhost;
     char hostinfo[256];
-    char hostname[256];
-    char buf[MAXSIZE];               /* buffer for string the server sends */
+    char hostname[256];    
 
-    fd_set readset, masterset;
-    int pigopt;
-    char *output[255];
+    
+    /***********************************************/
+    /* File Descriptor sets                         */
+    /***********************************************/    
+    fd_set readset, masterset;    
 
+    
+    /***********************************************/
+    /* File related variables                      */
+    /***********************************************/    
     char *bufCommand = buf;
     char *checker = NULL;
-
-
     int readLines;
     int fileRequested = 0;
-
     char *word2, *end;
     char delimiter[] = " ";
     int readCommandLines;
@@ -190,12 +197,11 @@ int main(int argc, char *argv[]) {
     icmd *flags;
     flags = malloc(sizeof(icmd));
 
-
     flags->noleft = 0;
     flags->noright = 0;
     flags->rraddr = NULL;      /* hold addresses of left and right connect IP adresses */
-    flags->llport = PROTOPORT; /*left protocol port number */
-    flags->rrport = PROTOPORT; /*right protocol port number */
+    flags->llport = PROTOPORT; /* left protocol port number */
+    flags->rrport = PROTOPORT; /* right protocol port number */
     flags->dsplr = 1;          /* display left to right data, default if no display option provided */\    
     flags->dsprl = 0;          /* display right  to left data */
     flags->loopr = 0;          /* take data that comes from the left and send it back to the left */
@@ -222,7 +228,7 @@ int main(int argc, char *argv[]) {
     ip = *(struct in_addr *) lhost->h_addr_list[0];
     flags->lladdr = inet_ntoa(ip);
     
-    printf("local addr: %s\n", flags->lladdr);
+    //printf("local addr: %s\n", flags->lladdr);
     /*********************************/
     /* End getting local IP address  */
     /*********************************/
@@ -249,15 +255,13 @@ int main(int argc, char *argv[]) {
 
                     readLines = fileRead(filename, output);
                     /* read from array and pass into flag function*/
-                    for (int x = 0; x < readLines; ++x) {
+                    for (x = 0; x < readLines; ++x) {
                         printf("%s\n", output[x]);
-                        n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc,
-                                          &parentrd, right, lconn);
+                        n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, right, lconn);
 
                         if (n < 0) {
                             printf("invalid command\n");
                         }
-
                         /* Discard after being used*/
                         free(output[x]);
                     }
@@ -267,10 +271,9 @@ int main(int argc, char *argv[]) {
                 else {
                     readLines = fileRead("scriptin.txt", output);
                     /* read from array and pass into flag function  */                    
-                    for (int x = 0; x < readLines; ++x) {
+                    for (x = 0; x < readLines; ++x) {
                         printf("%s\n", output[x]);
-                        n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc,
-                                          &parentrd, right, lconn);
+                        n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, right, lconn);
 
                         if (n < 0) {
                             printf("invalid command\n");
@@ -278,8 +281,8 @@ int main(int argc, char *argv[]) {
                         free(output[x]);
                     }
                 }
-
                 break;
+                
             case 'l':
                 openld = 0;
                 flags->noleft = 1;                
@@ -291,15 +294,14 @@ int main(int argc, char *argv[]) {
                 flags->dsplr = 1;
                 flags->dsprl = 0;                
                 break;
+                
             case 'd': 
-                /* Dsplr is default therefore nothing to be done*/
-                flags->dsprl = 1;                
+                /* Dsplr is default therefore nothing to be done*/                                
                 break;
 
             case 'e':
                 flags->dsprl = 1;
-                flags->dsplr = 0;
-                
+                flags->dsplr = 0;                
                 break;
 
             case 'f':
@@ -309,8 +311,7 @@ int main(int argc, char *argv[]) {
 
             case 'g':
                 flags->loopl = 1;
-                flags->output = 0;
-                
+                flags->output = 0;                
                 break;
             
             case 'i':
@@ -318,11 +319,11 @@ int main(int argc, char *argv[]) {
                 break;
                 
             case 'h':
-                flags->persr = 1;                
-                
+                flags->persr = 1;
                 break;
+                
             case 't':
-                printf("-------optin:   %d\n", optind);
+                /* Test for illegal value */
                 if (number(argv[optind]) > 0) {
                     flags->llport = atoi(argv[optind]);
                 } else {
@@ -338,7 +339,7 @@ int main(int argc, char *argv[]) {
                 break;
 
             case 'k':
-                printf("-------optin:   %d\n", optind);
+                /* Test for illegal value */
                 if (number(argv[optind ]) > 0) {
                     flags->rrport = atoi(argv[optind]);
                 } else {
@@ -350,8 +351,7 @@ int main(int argc, char *argv[]) {
                     printf("right port number out of range: %d\n", flags->rrport);
                     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                     return -1;
-                }
-                /* test for illegal value */
+                }                
                 break;
 
             case 'z':                
@@ -381,6 +381,9 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    /**************************************************/
+    /*  Adjusting program variables and correct flags */
+    /**************************************************/
     
     /* If head piggy selected, it requires a right address*/
     if(flags->noleft && ( flags->rraddr[0] == '0') ){
@@ -406,26 +409,14 @@ int main(int argc, char *argv[]) {
         return -1;
         exit(1);
     }
-
-    /* Display conditions for tail and head piggies*/
-    /* Head piggy case, set dsprl flag and clear dsplr*/
-
- //   if (flags->noleft == 1) {
-        //flags->dsplr = 0;
-        //flags->dsprl = 1;
- //   }
-    /* Tail piggy case, set dslr flag and clear dsprl*/
- //   if (flags->noright == 2) {
-        //flags->dsplr == 2;
-        //flags->dsprl = 0;
-    //}
     
-    
+    /* Head piggy, set dsprl and clear dsplr*/
     if (flags->noleft == 1) {
         flags->dsplr = 0;
         flags->dsprl = 1;
     }
-    /* Tail piggy case, set dslr flag and clear dsprl*/
+    
+    /* Tail piggy case, set dsplr flag and clear dsprl*/
     if (flags->noright == 2) {
         flags->dsplr == 2;
         flags->dsprl = 0;
@@ -474,19 +465,16 @@ int main(int argc, char *argv[]) {
             openrd = 1;
             openld = 1;
             FD_SET(parentld, &masterset);
-            FD_SET(parentrd, &masterset);
-            //printf("One right descriptor added to fd_set, right descriptor\n");
-            //printf("Two left descriptors added, main left listening and left accept\n");
+            FD_SET(parentrd, &masterset);            
             break;
 
-            /*
-             * Head piggy
-             */
+        /*
+        * Head piggy
+        */
         case 1:
             printf("Head piggy\n");
 
-            pigopt = 2;
-            printf("head right tuple:   (%hu, %s)\n", flags->rrport, flags->rraddr);
+            pigopt = 2;            
             parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
 
             if (parentrd < 0) {
@@ -495,14 +483,13 @@ int main(int argc, char *argv[]) {
             }
 
             openrd = 1;
-            openld = 0;
-            printf("One right descriptor added to fd_set, right descriptor\n");
+            openld = 0;        
             FD_SET(parentrd, &masterset);
             break;
 
-            /*
-             * Tail Piggy
-             */
+        /*
+        * Tail Piggy
+        */
         default:
             printf("Tail piggy\n");
 
@@ -517,7 +504,7 @@ int main(int argc, char *argv[]) {
             openld = 1;
             openrd = 0;
             FD_SET(parentld, &masterset);
-            printf("One left descriptor added to fd_set, left descriptor \n");
+           // printf("One left descriptor added to fd_set, left descriptor \n");
     }
     /*end switch */
 
@@ -530,18 +517,19 @@ int main(int argc, char *argv[]) {
     
     /* 
      * DEBUGGING
-     */    
-    printf("flags->dsplr: %d\n", flags->dsplr);
+     */        
     
 
     /*
      * DEBUGGING
      */    
+    
+    
+    
     /* Since the piggy position is at least 0 and less than 3*/
     /*  maxfd == parentld or maxfd == parentrd               */
     maxfd = max(parentld, parentrd);
-    printf("All required sockets okay...\n");
-    printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
+    printf("All required sockets okay...\n");    
 
     while (1) {
         /* The size of masterset is dynamic throughout runtime */
@@ -558,10 +546,7 @@ int main(int argc, char *argv[]) {
         *
         * Notes:
         *   When creating the socket descriptors,
-        *   we already ensured that parentrd > 0,<<<<<<< HEAD
-
-                    if (openrd || openld) {
-                        printf("\nEnter Insert\n");
+        *   we already ensured that parentrd > 0,;
         *   therfore don't need addition checks
         *   durring its use.
         */
@@ -569,67 +554,76 @@ int main(int argc, char *argv[]) {
             ch = getchar();
 
             switch (ch) {
-                /*i*/
+                
+                /*
+                *   Insert mode
+                */
                 case 105:
                     if (openrd || openld) {
                         printf("Enter Insert\n");
 
                         while (1) {
                             ch = getchar();
+                            
+                            if(ch == 27){
+                                printf("\n");
+                                break;
+                            }
                             if(ch == 10){
                                 printf("\n");
                             }
-                            else{
-                                putchar(ch);
-                            }
-                            if (ch == 27) {                                
-                                printf("\n");
-                                break;
-                            } 
-                            else {
-                                buf[0] = (char) ch;;
-                                /* Preconditions for sending data to the right, output == 0 */
-                                if (flags->output && openrd) {
-                                    n = send(parentrd, buf, sizeof(buf), 0);
-                                    if (n < 0) {
-                                        printf("send parent error");
-                                        break;
-                                    }
-                                    if (n == 0) {
-                                        /* Here, if persr is set, we will attempt*/
-                                        /*  reestablish the connection           */
-                                        flags->reconl = 1;
-                                        printf("right connection closed...\n");
-                                        break;
-                                    }
+                            
+                            putchar(ch);
+                            
+                            buf[0] = (char) ch;;
+                            /* Preconditions for sending data to the right, output == 1 */
+                            if (flags->output && openrd) {
+                                n = send(parentrd, buf, sizeof(buf), 0);
+                                if (n < 0) {
+                                    printf("send parent error");
+                                    break;
                                 }
-                                
-                                /* Preconditions for sending data to the left, output == 0 */
-                                if (!flags->output && openld) {
-                                    n = send(desc, buf, sizeof(buf), 0);
+                                if (n == 0) {
+                                    /* Here, if persr is set, we will attempt*/
+                                    /*  reestablish the connection           */
+                                    flags->reconl = 1;
+                                    //printf("right connection closed...\n");
+                                    break;
+                                }
+                            }
+                            
+                            /* Preconditions for sending data to the left, output == 0 */
+                            if (!flags->output && openld ) {
+                                n = send(desc, buf, sizeof(buf), 0);
 
-                                    if (n < 0) {
-                                        printf("send left error \n");
-                                        break;
-                                    }
-                                    if (n == 0) {
-                                        printf("left connection closed, reestablish later...\n");
-                                        break;
-                                    }
+                                if (n < 0) {
+                                    printf("send left error \n");
+                                    break;
                                 }
-                            }
+                                if(n == 0 && flags->persl) {                                    
+                                    printf("left connection closed, reestablishing...\n");
+                                    break;
+                                }
+                            }                            
                         }
-                    } else {
+                    }/* End of at least one socket is open*/ 
+                    else {
                         printf("no open sockets..\n");
                     }
                     break;
-                    /* q quit*/
+                    
+                /* 
+                 *  Quitting
+                 */
                 case 113:
                     bzero(buf, sizeof(buf));
                     printf("exiting\n");
                     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                     return 0;
-                    /* : interactive commands*/
+                
+                /* 
+                 * Interactive commands
+                 */
                 case 58:
                     bzero(buf, sizeof(buf));
                     i = 0;
@@ -638,6 +632,8 @@ int main(int argc, char *argv[]) {
 
                     while (1) {
                         ch = getchar();
+                        
+                        /* Checking for return character */
                         if (ch == 10) {
                             break;
                         } else {
@@ -660,20 +656,24 @@ int main(int argc, char *argv[]) {
                         readCommandLines = fileRead(word2, output);
 
                         /* Read from array and pass into flagfunction */
-                        for (int x = 0; x < readCommandLines; ++x) {
+                        for (x = 0; x < readCommandLines; ++x) {
                             printf("%s\n", output[x]);
-                            n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc,
-                                              &parentrd, lconn, right);
+                            n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, lconn, right);
 
                             switch (n) {
-                                /* valid command*/
+                                /*
+                                 *  valid command
+                                 */
                                 case 1:
                                     break;
 
-                                    /* persl*/
+                                /*
+                                 *  persl
+                                 */
                                 case 2:
                                     if ((flags->position < 2) && !openld) {                                                                                
                                         buf[0] = '\0';
+                                        strncat(buf, , sizeof(buf));
                                         n = send(desc, buf, sizeof(buf), 0);
                                                                                 
                                         if (n < 0) {                                        
@@ -686,47 +686,45 @@ int main(int argc, char *argv[]) {
                                     
                                     break;
 
-                                    /* persr, make reconnection if necessary*/
+                                /*
+                                 *  persr, make reconnection if necessary
+                                 */
                                 case 3:
                                     if (flags->position < 2 && !FD_ISSET(parentrd, &masterset)) {
                                         printf("right side reconnecting..\n ");
                                         pigopt = 2;
-                                        parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right,
-                                                             host);
+                                        parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
 
                                         if (parentrd > 0) {
+
                                             printf("connection restablished\n");
                                             openrd = 1;
-                                            openld = 0;
-                                           // printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd,
-                                           //        maxfd);
+                                            openld = 0;                                                                            
                                             maxfd = max(desc, parentld);
                                             maxfd = max(maxfd, parentrd);
-                                            FD_SET(parentrd, &masterset);
-                                          //  printf("One right descriptor added to fd_set, right descriptor\n");
-                                        //    printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd,
-                                         //          maxfd);
-                                            openrd = 1;
-                                            openld = 0;
-                                            printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd,
-                                                   maxfd);
-                                            maxfd = max(desc, parentld);
-                                            maxfd = max(maxfd, parentrd);
-                                            FD_SET(parentrd, &masterset);
-                                            printf("One right descriptor added to fd_set, right descriptor\n");
-                                            printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd,
-                                                   maxfd);
+                                            FD_SET(parentrd, &masterset);                                        
                                         } else {
                                             flags->persr = 2;
                                         }
                                     }
                                     break;
 
-                                    /* dropl*/
+                                /*
+                                 *  dropl
+                                 */
                                 case 4:
+                                    
+                                    /*
+                                    * Notes:
+                                    *   -valid of piggies with postion 0 & 2
+                                    *   -Openld closed
+                                    *   -dropl behavior: message sent to connecting piggy
+                                    *   -clear output left
+                                    */
                                     if (desc > 0) {
+                                                                                
                                         buf[0] = '\0';
-                                        strncat(buf, "REMOTE-LEFT-DROP", sizeof(buf));
+                                        strncat(buf, DROPL, sizeof(buf));
                                         n = send(desc, buf, sizeof(buf), 0);
                                         openld = 0;
                                         if (n < 0) {
@@ -736,7 +734,9 @@ int main(int argc, char *argv[]) {
                                     }
                                     break;
 
-                                    /* dropr*/
+                                /* 
+                                 *  dropr
+                                 */
                                 case 5:
                                     /* parentrd socket already closed in flagsfunction*/
                                     if (parentrd > 0) {
@@ -745,33 +745,46 @@ int main(int argc, char *argv[]) {
                                     break;
 
                                 default:
-
-                                    printf("\ninvalid command\n");
-
-                                    printf("invalid command\n");
+                                    printf("invalid command\n");                                    
 
                             }
                             free(output[x]);
                         }
 
                         break;
-                    }/* End reading commands from bufCommand*/
+                    }/* End reading commands from bufCommand*/                    
                     else {
-                        n = flagsfunction(flags, buf, sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd,
-                                          lconn, right);
+                        n = flagsfunction(flags, buf, sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, lconn, right);
 
                         switch (n) {
-                            /* valid command*/
+                            /*
+                            *  valid command
+                            */
                             case 1:
                                 break;
-                                /* persl*/
+
+                            /*
+                            *  persl
+                            */
                             case 2:
-                                if ((flags->position < 2) && !openld) {
-                                    FD_SET(desc, &masterset);
+                                if ((flags->position < 2) && !openld) {                                                                                
+                                    buf[0] = '\0';
+                                    strncat(buf, , sizeof(buf));
+                                    n = send(desc, buf, sizeof(buf), 0);
+                                                                            
+                                    if (n < 0) {                                        
+                                        openld = 0;
+                                    }else{
+                                        FD_SET(desc, &masterset);
+                                        openld = 1;
+                                    }
                                 }
+                                
                                 break;
 
-                                /* persr, make reconnection if necessary*/
+                            /*
+                            *  persr, make reconnection if necessary
+                            */
                             case 3:
                                 if (flags->position < 2 && !FD_ISSET(parentrd, &masterset)) {
                                     printf("right side reconnecting..\n ");
@@ -782,63 +795,67 @@ int main(int argc, char *argv[]) {
 
                                         printf("connection restablished\n");
                                         openrd = 1;
-                                        openld = 0;
-                                        //printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd,
-                                       //        maxfd);
-
-                                        openrd = 1;
-                                        openld = 0;
-                                        printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd,
-                                               maxfd);
+                                        openld = 0;                                                                            
                                         maxfd = max(desc, parentld);
                                         maxfd = max(maxfd, parentrd);
-                                        FD_SET(parentrd, &masterset);
-                                        printf("One right descriptor added to fd_set, right descriptor\n");
-                                        printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd,
-                                               maxfd);
+                                        FD_SET(parentrd, &masterset);                                        
                                     } else {
                                         flags->persr = 2;
                                     }
                                 }
                                 break;
 
-                                /* dropl*/
+                            /*
+                            *  dropl
+                            */
                             case 4:
+                                
+                                /*
+                                * Notes:
+                                *   -valid of piggies with postion 0 & 2
+                                *   -Openld closed
+                                *   -dropl behavior: message sent to connecting piggy
+                                *   -clear output left
+                                */
                                 if (desc > 0) {
+                                                                            
                                     buf[0] = '\0';
-                                    strncat(buf, "REMOTE-LEFT-DROP", sizeof(buf));
+                                    strncat(buf, DROPL, sizeof(buf));
                                     n = send(desc, buf, sizeof(buf), 0);
-
+                                    openld = 0;
                                     if (n < 0) {
                                         continue;
                                     }
                                     FD_CLR(desc, &masterset);
                                 }
                                 break;
-                                /* dropr*/
-                            case 5:
 
+                            /* 
+                            *  dropr
+                            */
+                            case 5:
                                 /* parentrd socket already closed in flagsfunction*/
                                 if (parentrd > 0) {
                                     FD_CLR(parentrd, &masterset);
                                 }
                                 break;
+
                             default:
-
-                                printf("\ninvalid command\n");
                                 printf("invalid command\n");
-                        }
-
-                        break;
-                    }
-            }
-        }
-        /*End stdin */
+                    }/* End switch case*/
+                    break;
+                }/* End else single interactive command string*/
+            }/* End stdin descriptor loop*/
+        }/*End stdin */
 
 
         /*
          * LEFT SIDE ACCEPT
          *
+         * 
+         * 
+         * 
+         * 
          * Notes:
          *  Accept incoming left connection
          */
@@ -854,12 +871,14 @@ int main(int argc, char *argv[]) {
 
             maxfd = max(maxfd, desc);
             FD_SET(desc, &masterset);
-            printf("right connection established\n");
-            //printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
+            printf("right connection established\n");            
         }
 
         /* LEFT SIDE LISTENING DESCRIPTOR
         *
+        * 
+        * 
+        * 
         * Notes:
         *   When creating the socket descriptors, we
         *   already ensured that desc >0; therfore
@@ -909,7 +928,7 @@ int main(int argc, char *argv[]) {
             }
 
             /* Check if data needs to be forwarded */
-            if (openrd && !flags->loopr) {
+            if (openrd && !flags->loopr && !flags->output) {
                 n = send(parentrd, buf, sizeof(buf), 0);
 
                 if (n < 0) {
@@ -933,6 +952,9 @@ int main(int argc, char *argv[]) {
 
         /* RIGHT SIDE DESCRIPTROR
         *
+        * 
+        * 
+        * 
         * Notes:
         *   FD_ISSET will be true for the head
         *   piggy and middle piggies, therfore we
@@ -957,18 +979,19 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             }
-                /* Check for constant string*/
+            
+            /* Check for constant DROPL string*/
             if ( strncmp(buf, DROPL, sizeof(buf) ) == 0 ) {
                 openrd = 0;
             } 
-            else if ( strncmp(buf, CONNL, sizeof(buf) ) == 0 ) {
+            /* Check for constant PERSL string*/
+            else if ( strncmp(buf, PERSL, sizeof(buf) ) == 0 ) {
                 printf("remote right side reconnection");
                 openrd = 1;                
             }
             else {
 
-                /* If dsprl is set we print data coming from the right*/
-                /* If dsprl is set we print data coming frm the right*/
+                /* If dsprl is set we print data coming from the right*/                
                 if (flags->dsprl) {
                     if( buf[0] == '\n'){
                         printf("\n");
@@ -984,13 +1007,13 @@ int main(int argc, char *argv[]) {
                         break;
                     }
                     if (n == 0) {
-                        printf("left connection closed, reestablish later...\n");
+                        flags->persr = 2;                        
                         break;
                     }
                 }
 
                 /* Data only left forwarded if middle piggy */
-                if (!flags->loopl && openld) {
+                if (!flags->loopl && openld && !flags->output) {
                     n = send(desc, buf, sizeof(buf), 0);
                     if (n < 0) {
                         openld = 0;
@@ -999,35 +1022,33 @@ int main(int argc, char *argv[]) {
                     }
 
                     if (n == 0) {
-                        flags->persl = 2;
-                        printf("left connection closed, reestablish later...\n");
+                        flags->persl = 2;                        
                         break;
                     }
                 }
-            }
         }/* End ready parentrd*/
 
-        /* Try right reconnection if unsuccessful*/
-        /* persr is only ever set to 2 when a reconnect
-         * fails after calling flagsfunction
-         */
+        /* 
+        *Notes:
+        *  -Try right reconnection if unsuccessful
+        *  -persr is only ever set to 2 when a reconnect
+        *      fails after calling flagsfunction
+        */
         if (flags->persr == 2) {
             printf("right side reconnecting..\n ");
             pigopt = 2;
-
             parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
+            
             if (parentrd > 0) {
                 flags->persr = 1;
-                openrd = 1;
-                printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
+                openrd = 1;                
                 maxfd = max(desc, parentld);
                 maxfd = max(maxfd, parentrd);
                 FD_SET(parentrd, &masterset);
-                printf("One right descriptor added to fd_set, right descriptor\n");
-                printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
             }
         }
-
+        
+        /* Dummy condition for persl "reconnection" */
         if (flags->reconl) {
             printf("left side reconnecting attempt...\n ");
         }
