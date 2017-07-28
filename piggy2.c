@@ -292,11 +292,7 @@ int main(int argc, char *argv[]) {
                 break;
             case 'd': 
                 /* Dsplr is default therefore nothing to be done*/
-                flags->dsprl = 0;
-                printf("noRight\n");
-                break;
-            case 'd':
-                //flags->dsplr = 1;
+                flags->dsprl = 1;                
                 break;
 
             case 'e':
@@ -385,7 +381,7 @@ int main(int argc, char *argv[]) {
     }
 
     
-    /* If head piggy selected, it requires a right address*/<<<<<<< HEAD
+    /* If head piggy selected, it requires a right address*/
     if(flags->noleft && ( flags->rraddr[0] == '0') ){
         printf("Head piggy requires a right address...\n");
         tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
@@ -607,7 +603,7 @@ int main(int argc, char *argv[]) {
      `                                   break;
                                     }
                                 }
-
+                                
                                 /* Preconditions for sending data to the left, output == 0 */
                                 if (!flags->output && openld) {
                                     n = send(desc, buf, sizeof(buf), 0);
@@ -657,7 +653,7 @@ int main(int argc, char *argv[]) {
 
                     inputLength = strlen(buf);
                     char *inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
-
+                    
                     checker = strstr(bufCommand, "source");
                     if (checker == bufCommand) {
                         strncpy(inputCopy, buf, inputLength);
@@ -672,11 +668,6 @@ int main(int argc, char *argv[]) {
                             printf("%s\n", output[x]);
                             n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc,
                                               &parentrd, lconn, right);
-<<<<<<< HEAD
-
-                            switch (n) {
-
-=====
 
                             switch (n) {
                                 /* valid command*/
