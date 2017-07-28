@@ -206,7 +206,8 @@ int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in co
 int flagsfunction( icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right){    
         int value = -1;
         /* */
-        if (strncmp(command, "outputl", len) == 0) {        
+        if (strncmp(command, "outputl", len) == 0) {  
+            value = 1;
             printf("set output to left piggy\n");
             flags->output =0;        
             flags->loopl = 0;

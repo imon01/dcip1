@@ -54,7 +54,7 @@ Note:
 
 #include <arpa/inet.h>
 
-/*
+
 #include <net/if.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
@@ -65,18 +65,16 @@ Note:
 #include <execinfo.h>
 #include <unistd.h>
 #include <ctype.h>
- */
-
 #ifndef unix
 #define WIN32
 #include <windows.h>
 #include <winsock.h>
 #else
-//#define closesocket close
+#define closesocket close
 
-//#include <sys/types.h>
-//#include <sys/socket.h>
-//#include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <netdb.h>
 
 #endif
@@ -150,14 +148,14 @@ int main(int argc, char *argv[]) {
     int n;
     int len;
     int ch;
-    int indexptr; /*generic ponter for getopt_long_only API*/
+    int indexptr;       /*generic ponter for getopt_long_only API*/
 
     int maxfd;
     int desc = -1;
-    int parentrd = -1; /*right and left socket descriptors*/
+    int parentrd = -1;  /*right and left socket descriptors*/
     int parentld = -1;  /*right and left socket descriptors*/
-    int openrd = 1; /* indicates open (1) right connection, otherwise (0)*/
-    int openld = 1;    /* indicates open(1) left connection, otherwise (0)*/
+    int openrd = 1;     /* indicates open (1) right connection, otherwise (0)*/
+    int openld = 1;     /* indicates open(1) left connection, otherwise (0)*/
 
     struct addrinfo hints, *infoptr; /*used for getting connecting right piggy if give DNS*/
     struct addrinfo *p;
@@ -165,7 +163,7 @@ int main(int argc, char *argv[]) {
     struct hostent *lhost;
     char hostinfo[256];
     char hostname[256];
-    char buf[MAXSIZE]; /* buffer for string the server sends */
+    char buf[MAXSIZE];               /* buffer for string the server sends */
 
     fd_set readset, masterset;
     int pigopt;
@@ -190,13 +188,13 @@ int main(int argc, char *argv[]) {
 
     flags->noleft = 0;
     flags->noright = 0;
-    flags->rraddr = NULL; /* hold addresses of left and right connect IP adresses */
+    flags->rraddr = NULL;      /* hold addresses of left and right connect IP adresses */
     flags->llport = PROTOPORT; /*left protocol port number */
-    flags->rrport = PROTOPORT;  /*right protocol port number */
-    flags->dsplr = 1; /* display left to right data, default if no display option provided */\    
-    flags->dsprl = 0; /* display right  to left data */
-    flags->loopr = 0; /* take data that comes from the left and send it back to the left */
-    flags->loopl = 0; /* take data that comes in from the right and send back to the right */
+    flags->rrport = PROTOPORT; /*right protocol port number */
+    flags->dsplr = 1;          /* display left to right data, default if no display option provided */\    
+    flags->dsprl = 0;          /* display right  to left data */
+    flags->loopr = 0;          /* take data that comes from the left and send it back to the left */
+    flags->loopl = 0;          /* take data that comes in from the right and send back to the right */
     flags->output = 1;
 
 
@@ -464,6 +462,7 @@ int main(int argc, char *argv[]) {
             printf("Head piggy\n");
 
             pigopt = 2;
+            printf("head right tuple:   (%hu, %s)\n", flags->rrport, flags->rraddr);
             parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
 
             if (parentrd < 0) {
@@ -884,6 +883,8 @@ int main(int argc, char *argv[]) {
         if (FD_ISSET(parentrd, &readset)) {
             bzero(buf, sizeof(buf));
             n = recv(parentrd, buf, sizeof(buf), 0);
+            
+            
             if (n < 0) {
                 openrd = 0;
                 printf("recv right error\n");
@@ -899,9 +900,8 @@ int main(int argc, char *argv[]) {
                 break;
             }
                 /* Check for constant string*/
-            else if (strncmp(buf, DROPL, sizeof(buf))) {
-                openrd = 0;
-                printf("Right connection closed...\n");
+            else if ( strncmp(buf, DROPL, sizeof(buf) ) == 0 ) {
+                openrd = 0;                
             } else {
 
                 /* If dsprl is set we print data coming frm the right*/
