@@ -94,6 +94,7 @@ WSAStartup(0x0101, &wsaData);
 //extern int errno;
 //char localhost[] = "localhost"; /* default host name */
 const char *DROPL = "REMOTE-LEFT-DROP";
+const char *CONNL = "REMOTE-LEFT-CONN";
 char *filename = "scriptin.txt"; // set default definition for filename
 struct hostent *host; /* pointer to a host table entry */
 //struct addrinfo hints, *infoptr; /*used for getting connecting right piggy if give DNS*/
@@ -674,6 +675,7 @@ int main(int argc, char *argv[]) {
                                     if ((flags->position < 2) && !openld) {
                                         FD_SET(desc, &masterset);
                                     }
+                                    
                                     break;
 
                                     /* persr, make reconnection if necessary*/
@@ -935,7 +937,7 @@ int main(int argc, char *argv[]) {
             
             if (n < 0) {
                 openrd = 0;
-                printf("recv right error\n");
+                printf("right recv right error\n");
                 break;
             }
 
@@ -948,9 +950,14 @@ int main(int argc, char *argv[]) {
                 break;
             }
                 /* Check for constant string*/
-            else if ( strncmp(buf, DROPL, sizeof(buf) ) == 0 ) {
-                openrd = 0;                
-            } else {
+            if ( strncmp(buf, DROPL, sizeof(buf) ) == 0 ) {
+                openrd = 0;
+            } 
+            else if ( strncmp(buf, CONNL, sizeof(buf) ) == 0 ) {
+                printf("remote right side reconnection");
+                openrd = 1;                
+            }
+            else {
 
                 /* If dsprl is set we print data coming from the right*/
                 /* If dsprl is set we print data coming frm the right*/
@@ -1014,7 +1021,7 @@ int main(int argc, char *argv[]) {
         }
 
         if (flags->reconl) {
-            printf("left side reconnecting..\n ");
+            printf("left side reconnecting attempt...\n ");
         }
     }
 
