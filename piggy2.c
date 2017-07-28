@@ -218,6 +218,8 @@ int main(int argc, char *argv[]) {
 
     ip = *(struct in_addr *) lhost->h_addr_list[0];
     flags->lladdr = inet_ntoa(ip);
+    
+    printf("local addr: %s\n", flags->lladdr);
     /*********************************/
     /* End getting local IP address  */
     /*********************************/
@@ -551,11 +553,17 @@ int main(int argc, char *argv[]) {
 
                         while (1) {
                             ch = getchar();
-
+                            if(ch == 10){
+                                printf("\n");                                
+                            }
+                            else{
+                                putchar(ch);
+                            }
                             if (ch == 27) {
-                                printf("\n");
+                                
                                 break;
-                            } else {
+                            } 
+                            else {
                                 buf[0] = (char) ch;;
                                 /* Preconditions for sending data to the right, output == 0 */
                                 if (flags->output && openrd) {

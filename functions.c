@@ -172,7 +172,7 @@ int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in co
                     perror("socket");
                     return -1;
                 }
-                
+                printf("(%hu, %s, %d)\n",  (u_short) port, inet_ntoa(conn.sin_addr), sd );
                 /* Connect to remote host*/
                 if( (connect(sd, (struct sockaddr * )&conn, sizeof(conn))) < 0) {
                     perror("!connect");
