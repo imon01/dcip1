@@ -111,7 +111,7 @@ int max(int a, int b){
 *Returns : 
 *           socket descriptor
 */
-int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct sockaddr_in conn, struct hostent *host ){
+int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in conn, struct hostent *host ){
     
     
         int sd, len,n =0;        
@@ -159,11 +159,9 @@ int sock_init(icmd * flags, int pigopt, int qlen, int port, char *addr, struct s
         }
         
         /* Connecting */
-        if(pigopt == 2){            
-                printf("getting host\n");
+        if(pigopt == 2){                
                 conn.sin_port = htons((u_short) port);
-                host = gethostbyname(addr);
-                printf("memcpy\n");
+                host = gethostbyname(addr);                
                 memcpy(&conn.sin_addr.s_addr, host->h_addr, host->h_length);
                 
                 //inet_aton(host->h_addr, &conn.sin_addr);

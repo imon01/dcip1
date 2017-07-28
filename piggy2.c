@@ -112,6 +112,7 @@ static struct option long_options[] =
                 {"dsprl",   optional_argument, NULL, 'e'},
                 {"loopr",   optional_argument, NULL, 'f'},
                 {"loopl",   optional_argument, NULL, 'g'},
+                {"persl",   optional_argument, NULL, 'i'},
                 {"persr",   optional_argument, NULL, 'h'},
                 {"llport",  optional_argument, NULL, 't'},
                 {"rraddr",  required_argument, NULL, 'z'},
@@ -192,7 +193,7 @@ int main(int argc, char *argv[]) {
     flags->rraddr = NULL; /* hold addresses of left and right connect IP adresses */
     flags->llport = PROTOPORT; /*left protocol port number */
     flags->rrport = PROTOPORT;  /*right protocol port number */
-    flags->dsplr = 1; /* display left to right data, default if no display option provided */
+    flags->dsplr = 1; /* display left to right data, default if no display option provided */\    
     flags->dsprl = 0; /* display right  to left data */
     flags->loopr = 0; /* take data that comes from the left and send it back to the left */
     flags->loopl = 0; /* take data that comes in from the right and send back to the right */
@@ -226,7 +227,7 @@ int main(int argc, char *argv[]) {
     /*********************************/
     /*  Parsing argv[]               */
     /*********************************/
-    while ((ch = getopt_long_only(argc, argv, "a::l::r::d::e::f::g::h::t::k:z:", long_options, &indexptr)) != -1) {
+    while ((ch = getopt_long_only(argc, argv, "a::l::r::d::e::f::g::h::t::k:z:", long_options, &indexptr)) != -1) {        
         switch (ch) {
             case 'a':
                 /* read file */
@@ -283,17 +284,18 @@ int main(int argc, char *argv[]) {
             case 'r':
                 openrd = 0;
                 flags->noright = 2;
-                flags->dsplr = 0;
-                flags->dsprl = 1;
+                flags->dsplr = 1;
+                flags->dsprl = 0;
                 printf("noRight\n");
                 break;
             case 'd':
-                flags->dsplr = 2;
+                //flags->dsplr = 1;
                 printf("display left -> right \n");
                 break;
 
             case 'e':
                 flags->dsprl = 1;
+                flags->dsplr = 0;
                 printf("display right -> left \n");
                 break;
 
@@ -308,12 +310,17 @@ int main(int argc, char *argv[]) {
                 flags->output = 0;
                 printf("loopl\n");
                 break;
+            
+            case 'i':
+                flags->persl = 1;
+                printf("persl\n");
+                break;
             case 'h':
-                flags->persr = 1;
-                //openrd = 1;
+                flags->persr = 1;                
                 printf("persr\n");
-
+                break;
             case 't':
+                printf("-------optin:   %d\n", optind);
                 if (number(argv[optind]) > 0) {
                     flags->llport = atoi(argv[optind]);
                 } else {
@@ -329,7 +336,8 @@ int main(int argc, char *argv[]) {
                 break;
 
             case 'k':
-                if (number(argv[optind - 1]) > 0) {
+                printf("-------optin:   %d\n", optind);
+                if (number(argv[optind ]) > 0) {
                     flags->rrport = atoi(argv[optind]);
                 } else {
                     printf("right port not a number: %s\n", argv[optind - 1]);
@@ -425,14 +433,14 @@ int main(int argc, char *argv[]) {
 
 
             pigopt = 2;
-            parentrd = sock_init(flags, pigopt, 0, flags->rrport, flags->rraddr, right, host);
+            parentrd = sock_init( pigopt, 0, flags->rrport, flags->rraddr, right, host);
             if (parentrd < 0) {
                 tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                 exit(1);
             }
 
             pigopt = 1;
-            parentld = sock_init(flags, pigopt, QLEN, flags->llport, NULL, left, NULL);
+            parentld = sock_init(pigopt, QLEN, flags->llport, NULL, left, NULL);
             if (parentld < 0) {
                 tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                 exit(1);
@@ -454,7 +462,7 @@ int main(int argc, char *argv[]) {
             printf("Head piggy\n");
 
             pigopt = 2;
-            parentrd = sock_init(flags, pigopt, 0, flags->rrport, flags->rraddr, right, host);
+            parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
 
             if (parentrd < 0) {
                 tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
@@ -474,14 +482,15 @@ int main(int argc, char *argv[]) {
             printf("Tail piggy\n");
 
             pigopt = 1;
-            parentld = sock_init(flags, pigopt, QLEN, flags->llport, NULL, left, NULL);
-            openld = 1;
+            parentld = sock_init(pigopt, QLEN, flags->llport, NULL, left, NULL);            
 
             if (parentld < 0) {
                 tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                 exit(1);
             }
-
+            
+            openld = 1;
+            openrd = 0;
             FD_SET(parentld, &masterset);
             printf("One left descriptor added to fd_set, left descriptor \n");
     }
@@ -492,7 +501,19 @@ int main(int argc, char *argv[]) {
     /*  Main loop performing network interaction        */
     /****************************************************/
 
-
+    
+    
+    /* 
+     * DEBUGGING
+     */
+    
+    
+    printf("flags->dsplr: %d\n", flags->dsplr);
+    
+    
+    /*
+     * DEBUGGING
+     */    
     /* Since the piggy position is at least 0 and less than 3*/
     /*  maxfd == parentld or maxfd == parentrd               */
     maxfd = max(parentld, parentrd);
@@ -630,7 +651,7 @@ int main(int argc, char *argv[]) {
                                     if (flags->position < 2 && !FD_ISSET(parentrd, &masterset)) {
                                         printf("right side reconnecting..\n ");
                                         pigopt = 2;
-                                        parentrd = sock_init(flags, pigopt, 0, flags->rrport, flags->rraddr, right,
+                                        parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right,
                                                              host);
 
                                         if (parentrd > 0) {
@@ -700,7 +721,7 @@ int main(int argc, char *argv[]) {
                                 if (flags->position < 2 && !FD_ISSET(parentrd, &masterset)) {
                                     printf("right side reconnecting..\n ");
                                     pigopt = 2;
-                                    parentrd = sock_init(flags, pigopt, 0, flags->rrport, flags->rraddr, right, host);
+                                    parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
 
                                     if (parentrd > 0) {
                                         openrd = 1;
@@ -752,7 +773,7 @@ int main(int argc, char *argv[]) {
 
 
         /*
-         * Left side accepting descriptor ready
+         * LEFT SIDE ACCEPT
          *
          * Notes:
          *  Accept incoming left connection
@@ -772,7 +793,7 @@ int main(int argc, char *argv[]) {
             printf("(left %d, desc %d, right %d, maxfd %d)\n", parentld, desc, parentrd, maxfd);
         }
 
-        /* Left side descriptor ready
+        /* LEFT SIDE LISTENING DESCRIPTOR
         *
         * Notes:
         *   When creating the socket descriptors, we
@@ -785,7 +806,7 @@ int main(int argc, char *argv[]) {
         if (FD_ISSET(desc, &readset)) {
             bzero(buf, sizeof(buf));
             n = recv(desc, buf, sizeof(buf), 0);
-            printf("%c\n", buf[0]);
+            
             if (n < 0) {
                 printf("recv left error \n");
                 break;
@@ -797,9 +818,12 @@ int main(int argc, char *argv[]) {
 
 
             /* If dsplr is set we print data coming frm the right*/
-            if (flags->dsplr == 1) {
-                printf("from left to right\n");
-                printf("%c", buf[0]);
+            if (flags->dsplr) {
+                if( buf[0] == '\n'){
+                    printf("\n");
+                }else{                    
+                    printf("%c", buf[0]);
+                }
             }
 
             /* Loop data right if set*/
@@ -842,7 +866,7 @@ int main(int argc, char *argv[]) {
 
 
 
-        /* Right side descriptor ready
+        /* RIGHT SIDE DESCRIPTROR
         *
         * Notes:
         *   FD_ISSET will be true for the head
@@ -874,8 +898,11 @@ int main(int argc, char *argv[]) {
 
                 /* If dsprl is set we print data coming frm the right*/
                 if (flags->dsprl) {
-                    printf("from right to left \n");
-                    printf("%c", buf[0]);
+                    if( buf[0] == '\n'){
+                        printf("\n");
+                    }else{                    
+                        printf("%c", buf[0]);
+                    }
                 }
 
                 if (flags->loopl == 1) {
@@ -916,7 +943,7 @@ int main(int argc, char *argv[]) {
             printf("right side reconnecting..\n ");
             pigopt = 2;
 
-            parentrd = sock_init(flags, pigopt, 0, flags->rrport, flags->rraddr, right, host);
+            parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
             if (parentrd > 0) {
                 flags->persr = 1;
                 openrd = 1;
