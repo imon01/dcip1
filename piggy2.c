@@ -542,7 +542,7 @@ int main(int argc, char *argv[]) {
         }
 
         /* Standard in descriptor ready
-        *
+        * 0FD
         * Notes:
         *   When creating the socket descriptors,
         *   we already ensured that parentrd > 0,;
@@ -591,6 +591,9 @@ int main(int argc, char *argv[]) {
                                         }
                                         printf("right send\n");
                                     }
+                                    else{
+                                        printf("right connection closed");
+                                    }
                                     
                                     /* Preconditions for sending data to the left, output == 0 */
                                     if (!flags->output && openld ) {
@@ -604,7 +607,10 @@ int main(int argc, char *argv[]) {
                                             break;
                                         }
                                         printf("1 left send\n");
-                                    }    
+                                    }
+                                    else{
+                                        printf("left connection closed");
+                                    }
                                 }                                
                         }/* End input loop*/
                     }/* End of at least one socket is open*/ 
