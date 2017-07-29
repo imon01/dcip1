@@ -149,7 +149,8 @@ int main(int argc, char *argv[]) {
     /***********************************************/
     /* Use input arguments from loop to set values */
     /***********************************************/
-    int i, n, x, len, ch;    
+    int i, n, x, len, ch;
+    int maxfd;          /* max descriptor                          */
     int pigopt;         /* piggy position indicating variable      */
     int indexptr;       /* generic ponter for getopt_long_only API */
     int desc = -1;      /* left accepted descriptor                */
@@ -256,7 +257,7 @@ int main(int argc, char *argv[]) {
                     readLines = fileRead(filename, output);
                     /* read from array and pass into flag function*/
                     for (x = 0; x < readLines; ++x) {
-                        printf("%s\n", output[x]);
+                       // printf("%s\n", output[x]);
                         n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, right, lconn);
 
                         if (n < 0) {
@@ -272,7 +273,7 @@ int main(int argc, char *argv[]) {
                     readLines = fileRead("scriptin.txt", output);
                     /* read from array and pass into flag function  */                    
                     for (x = 0; x < readLines; ++x) {
-                        printf("%s\n", output[x]);
+                        //printf("%s\n", output[x]);
                         n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, right, lconn);
 
                         if (n < 0) {
@@ -445,7 +446,7 @@ int main(int argc, char *argv[]) {
          * Middle piggy
          */
         case 0:
-            printf("Middle piggy\n");
+            
 
             pigopt = 2;
             parentrd = sock_init( pigopt, 0, flags->rrport, flags->rraddr, right, host);
@@ -472,7 +473,7 @@ int main(int argc, char *argv[]) {
         * Head piggy
         */
         case 1:
-            printf("Head piggy\n");
+            
 
             pigopt = 2;            
             parentrd = sock_init(pigopt, 0, flags->rrport, flags->rraddr, right, host);
@@ -491,7 +492,7 @@ int main(int argc, char *argv[]) {
         * Tail Piggy
         */
         default:
-            printf("Tail piggy\n");
+            
 
             pigopt = 1;
             parentld = sock_init(pigopt, QLEN, flags->llport, NULL, left, NULL);            
@@ -524,10 +525,8 @@ int main(int argc, char *argv[]) {
      * DEBUGGING
      */    
     
-    
-    
-    /* Since the piggy position is at least 0 and less than 3*/
-    /*  maxfd == parentld or maxfd == parentrd               */
+            
+    /*  maxfd == parentld or maxfd == parentrd               */    
     maxfd = max(parentld, parentrd);
     printf("All required sockets okay...\n");    
 
@@ -560,52 +559,54 @@ int main(int argc, char *argv[]) {
                 */
                 case 105:
                     if (openrd || openld) {
+                        bzero(buf, sizeof(buf));
                         printf("Enter Insert\n");
+                        i =0;
+                        while ( (ch = getchar()) != 27 ) {
+                                //ch = getchar();
+                                
+                                //if(ch == 27){
+                                //    printf("\n");
+                                //    break;
+                               // }
+                                if(ch != 10){
+                                    putchar(ch);
+                                    buf[i] = (char) ch;
+                                    ++i;
+                                }else{
+                                    printf("\n");
+                                    buf[i] = '\0';
+                                    /* Preconditions for sending data to the right, output == 1 */
+                                    if (flags->output && openrd) {
+                                        n = send(parentrd, buf, sizeof(buf), 0);
+                                        if (n < 0) {
+                                            printf("right send error");
+                                            break;
+                                        }
+                                        if (n == 0) {
+                                            /* Here, if persr is set, we will attempt*/
+                                            /*  reestablish the connection           */
+                                            flags->reconl = 1;                                        
+                                            break;
+                                        }
+                                        printf("right send\n");
+                                    }
+                                    
+                                    /* Preconditions for sending data to the left, output == 0 */
+                                    if (!flags->output && openld ) {
+                                        n = send(desc, buf, sizeof(buf), 0);
 
-                        while (1) {
-                            ch = getchar();
-                            
-                            if(ch == 27){
-                                printf("\n");
-                                break;
-                            }
-                            if(ch == 10){
-                                printf("\n");
-                            }
-                            
-                            putchar(ch);
-                            
-                            buf[0] = (char) ch;;
-                            /* Preconditions for sending data to the right, output == 1 */
-                            if (flags->output && openrd) {
-                                n = send(parentrd, buf, sizeof(buf), 0);
-                                if (n < 0) {
-                                    printf("send parent error");
-                                    break;
-                                }
-                                if (n == 0) {
-                                    /* Here, if persr is set, we will attempt*/
-                                    /*  reestablish the connection           */
-                                    flags->reconl = 1;
-                                    //printf("right connection closed...\n");
-                                    break;
-                                }
-                            }
-                            
-                            /* Preconditions for sending data to the left, output == 0 */
-                            if (!flags->output && openld ) {
-                                n = send(desc, buf, sizeof(buf), 0);
-
-                                if (n < 0) {
-                                    printf("send left error \n");
-                                    break;
-                                }
-                                if(n == 0 && flags->persl) {                                    
-                                    printf("left connection closed, reestablishing...\n");
-                                    break;
-                                }
-                            }                            
-                        }
+                                        if (n < 0) {
+                                            printf("left send error \n");
+                                            break;
+                                        }
+                                        if(n == 0 && flags->persl) {
+                                            break;
+                                        }
+                                        printf("left send\n");
+                                    }    
+                                }                                
+                        }/* End input loop*/
                     }/* End of at least one socket is open*/ 
                     else {
                         printf("no open sockets..\n");
@@ -673,7 +674,7 @@ int main(int argc, char *argv[]) {
                                 case 2:
                                     if ((flags->position < 2) && !openld) {                                                                                
                                         buf[0] = '\0';
-                                        strncat(buf, , sizeof(buf));
+                                        strncat(buf, PERSL, sizeof(buf));
                                         n = send(desc, buf, sizeof(buf), 0);
                                                                                 
                                         if (n < 0) {                                        
@@ -769,8 +770,8 @@ int main(int argc, char *argv[]) {
                             case 2:
                                 if ((flags->position < 2) && !openld) {                                                                                
                                     buf[0] = '\0';
-                                    strncat(buf, , sizeof(buf));
-                                    n = send(desc, buf, sizeof(buf), 0);
+                                    strncat(buf, PERSL, sizeof(buf));
+                                    n = send(desc, PERSL, sizeof(buf), 0);
                                                                             
                                     if (n < 0) {                                        
                                         openld = 0;
@@ -851,7 +852,7 @@ int main(int argc, char *argv[]) {
 
         /*
          * LEFT SIDE ACCEPT
-         *
+         * LDA
          * 
          * 
          * 
@@ -875,7 +876,7 @@ int main(int argc, char *argv[]) {
         }
 
         /* LEFT SIDE LISTENING DESCRIPTOR
-        *
+        *  LDD
         * 
         * 
         * 
@@ -895,27 +896,29 @@ int main(int argc, char *argv[]) {
                 printf("recv left error \n");
                 break;
             }
-            if (n == 0) {
-                printf("left connection closed, reestablish later...\n");
+            if (n == 0) {                
                 FD_CLR(desc, &masterset);
             }
 
-
+    
             /* If dsplr is set we print data coming frm the right*/
             if (flags->dsplr) {
-                if( buf[0] == '\n'){
-                    printf("\n");
-                }else{                    
-                    printf("%c", buf[0]);
-                }
+                printf("%s\n", buf);
+                 //fputs(buf, stdin);
+               // if( buf[0] == '\n'){
+                //    printf("\n");
+              //  }else{                    
+            //        printf("%c", buf[0]);
+            //    }
+               
             }
-
+            
             /* Loop data right if set*/
-            if (flags->loopr) {
+            if (flags->loopr && openld) {
                 n = send(desc, buf, sizeof(buf), 0);
 
                 if (n < 0) {
-                    printf("send left error\n");
+                    printf("-||---send left error\n");
                     break;
                 }
                 if (n == 0) {
@@ -928,12 +931,12 @@ int main(int argc, char *argv[]) {
             }
 
             /* Check if data needs to be forwarded */
-            if (openrd && !flags->loopr && !flags->output) {
+            if (openrd && flags->output ) {
                 n = send(parentrd, buf, sizeof(buf), 0);
 
                 if (n < 0) {
                     openrd = 0;
-                    printf("send right error \n");
+                    printf("~.~.~.~send right error \n");
                     break;
                 }
                 if (n == 0) {
@@ -951,7 +954,7 @@ int main(int argc, char *argv[]) {
 
 
         /* RIGHT SIDE DESCRIPTROR
-        *
+        *  RDD
         * 
         * 
         * 
@@ -962,21 +965,21 @@ int main(int argc, char *argv[]) {
         */
         if (FD_ISSET(parentrd, &readset)) {
             bzero(buf, sizeof(buf));
+            printf("1\n");
             n = recv(parentrd, buf, sizeof(buf), 0);
-            
+            printf("2\n");
             
             if (n < 0) {
                 openrd = 0;
                 printf("right recv right error\n");
                 break;
             }
-
+            printf("3\n");
             if (n == 0) {
                 openrd = 0;
-                if (flags->persr == 1) {
                     /* Reestablishing done at end of loop*/
                     flags->persr = 2;
-                }
+                
                 break;
             }
             
@@ -990,14 +993,9 @@ int main(int argc, char *argv[]) {
                 openrd = 1;                
             }
             else {
-
                 /* If dsprl is set we print data coming from the right*/                
                 if (flags->dsprl) {
-                    if( buf[0] == '\n'){
-                        printf("\n");
-                    }else{                    
-                        printf("%c", buf[0]);
-                    }
+                    printf("%s\n", buf);
                 }
 
                 if (flags->loopl == 1) {
@@ -1010,10 +1008,11 @@ int main(int argc, char *argv[]) {
                         flags->persr = 2;                        
                         break;
                     }
+                    printf("hee\n");                    
                 }
 
                 /* Data only left forwarded if middle piggy */
-                if (!flags->loopl && openld && !flags->output) {
+                if(openld && !flags->output) {
                     n = send(desc, buf, sizeof(buf), 0);
                     if (n < 0) {
                         openld = 0;
@@ -1026,6 +1025,7 @@ int main(int argc, char *argv[]) {
                         break;
                     }
                 }
+            }
         }/* End ready parentrd*/
 
         /* 
@@ -1053,7 +1053,6 @@ int main(int argc, char *argv[]) {
             printf("left side reconnecting attempt...\n ");
         }
     }
-
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     return 0;
 }/*end main*/

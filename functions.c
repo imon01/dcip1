@@ -172,7 +172,7 @@ int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in co
                     perror("socket");
                     return -1;
                 }
-                printf("(%hu, %s, %d)\n",  (u_short) port, inet_ntoa(conn.sin_addr), sd );
+                //printf("(%hu, %s, %d)\n",  (u_short) port, inet_ntoa(conn.sin_addr), sd );
                 /* Connect to remote host*/
                 if( (connect(sd, (struct sockaddr * )&conn, sizeof(conn))) < 0) {
                     perror("!connect");
@@ -180,7 +180,7 @@ int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in co
                     return -1;
                 }
         }
-        printf("sock_init ok...\n");
+       
         return sd;    
 }/*end socket_init */
 
@@ -216,7 +216,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         
         /* */
         if (strncmp(command, "outputr", len) == 0) {
-            
+             
             value = 1;        
             flags->output = 1;
             //flags->loopl = 0;
@@ -266,7 +266,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             value = 2;
             flags->persl = 1;
             *openld = 1;
-            printf("persl\n");
+            
         }
         
         /* */
@@ -274,7 +274,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             value = 3;
             flags->persr = 1;
             *openrd = 1;
-            printf("persrl\n");
+            
         }        
         
         /* */
@@ -331,17 +331,15 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         }
         
         if (strncmp(command, "loopr", len) == 0) {
-            value = 1;            
-            *openrd = 0;
-            flags->loopr = 1;
-            flags->output = 0;
-            printf("loopr\n");
+            value = 1;
+            flags->loopr = 1;  /* Takes data to be written to the right and sends left  */
+            flags->output = 0; /* Output becomes left with loopr                        */
+            
         }
         if (strncmp(command, "loopl", len) == 0) {        
             value = 1;
-            *openld = 0;
-            flags->loopl = 1;
-            flags->output = 1;            
+            flags->loopl = 1;   /* Takes data to be written to the left and send right  */
+            flags->output = 1;  /* Output becomes right                                 */
         }
         
         return value;
