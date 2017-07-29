@@ -626,15 +626,19 @@ int main(int argc, char *argv[]) {
                     bzero(buf, sizeof(buf));
                     printf("exiting\n");
                     FD_ZERO(&masterset);
-                    if(FD_ISSET(desc, &masterset);{
+                    
+                    if(FD_ISSET(desc, &masterset){
                         shutdown(desc,2);
                     }
-                    if(FD_ISSET(parentld, &masterset);{
+                    
+                    if(FD_ISSET(parentld, &masterset){
                         shutdown(parentld,1);
                     }                    
-                    if(FD_ISSET(parentrd, &masterset);{
+                    
+                    if(FD_ISSET(parentrd, &masterset){
                         shutdown(parentrd,2);
                     }
+                    
                     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                     return 1;
                 
