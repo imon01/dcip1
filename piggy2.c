@@ -771,7 +771,7 @@ int main(int argc, char *argv[]) {
                             case 2:
                                 if ((flags->position < 2) && !openld) {                                                                                
                                     bzero(buf, sizeof(buf)); 
-                                    strlcpy(buf, PERSL, sizeof(buf));
+                                    strcpy(buf, PERSL, sizeof(buf));
                                     n = send(desc, PERSL, sizeof(buf), 0);
                                                                             
                                     if (n < 0) {                                        
@@ -821,7 +821,7 @@ int main(int argc, char *argv[]) {
                                 */
                                 if (desc > 0) {
                                     bzero(buf, sizeof(buf));                                     
-                                    strlcpy(buf, DROPL, sizeof(buf));
+                                    strcpy(buf, DROPL, sizeof(buf));
                                     printf("dropl %s\n", buf);
                                     n = send(desc, buf, sizeof(buf), 0);
                                     openld = 0;
@@ -962,7 +962,7 @@ int main(int argc, char *argv[]) {
         * Notes:
         *   FD_ISSET will be true for the head
         *   piggy and middle piggies, therfore we
-        *   don't check for -noright
+        *   don't check for -noright,
         */
         if (FD_ISSET(parentrd, &readset)) {
             bzero(buf, sizeof(buf));            
