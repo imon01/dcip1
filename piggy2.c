@@ -625,8 +625,9 @@ int main(int argc, char *argv[]) {
                 case 113:
                     bzero(buf, sizeof(buf));
                     printf("exiting\n");
+                    FD_CLR(&masterset);
                     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-                    return 0;
+                    return 1;
                 
                 /* 
                  * Interactive commands
@@ -904,23 +905,18 @@ int main(int argc, char *argv[]) {
             }
             if (n == 0) {                
                 FD_CLR(desc, &masterset);
+                openld = 0;
+                break;
             }
 
     
             /* If dsplr is set we print data coming frm the right*/
             if (flags->dsplr) {
                 printf("%s\n", buf);
-                 //fputs(buf, stdin);
-               // if( buf[0] == '\n'){
-                //    printf("\n");
-              //  }else{                    
-            //        printf("%c", buf[0]);
-            //    }
-               
             }
             
             /* Loop data right if set*/
-            if (flags->loopr && openld) {
+            if (flags->loopr && openld){
                 n = send(desc, buf, sizeof(buf), 0);
 
                 if (n < 0) {
