@@ -603,7 +603,7 @@ int main(int argc, char *argv[]) {
                                         if(n == 0 && flags->persl) {
                                             break;
                                         }
-                                        printf("left send\n");
+                                        printf("1 left send\n");
                                     }    
                                 }                                
                         }/* End input loop*/
@@ -647,8 +647,8 @@ int main(int argc, char *argv[]) {
                     inputLength = strlen(buf);
                     char *inputCopy = (char *) calloc(inputLength + 1, sizeof(char));
                     
-                    checker = strstr(bufCommand, "source");
-                    if (checker == bufCommand) {
+                    checker = strstr(buf, "source");
+                    if (checker == buf) {
                         strncpy(inputCopy, buf, inputLength);
                         strtok_r(inputCopy, delimiter, &end);
                         word2 = strtok_r(NULL, delimiter, &end);
@@ -753,7 +753,8 @@ int main(int argc, char *argv[]) {
                         }
 
                         break;
-                    }/* End reading commands from bufCommand*/                    
+                    }
+                    /* End reading commands from bufCommand*/
                     else {
                         n = flagsfunction(flags, buf, sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, lconn, right);
 
@@ -769,8 +770,8 @@ int main(int argc, char *argv[]) {
                             */
                             case 2:
                                 if ((flags->position < 2) && !openld) {                                                                                
-                                    buf[0] = '\0';
-                                    strncat(buf, PERSL, sizeof(buf));
+                                    bzero(buf, sizeof(buf)); 
+                                    strlcpy(buf, PERSL, sizeof(buf));
                                     n = send(desc, PERSL, sizeof(buf), 0);
                                                                             
                                     if (n < 0) {                                        
@@ -819,9 +820,9 @@ int main(int argc, char *argv[]) {
                                 *   -clear output left
                                 */
                                 if (desc > 0) {
-                                                                            
-                                    buf[0] = '\0';
-                                    strncat(buf, DROPL, sizeof(buf));
+                                    bzero(buf, sizeof(buf));                                     
+                                    strlcpy(buf, DROPL, sizeof(buf));
+                                    printf("dropl %s\n", buf);
                                     n = send(desc, buf, sizeof(buf), 0);
                                     openld = 0;
                                     if (n < 0) {
