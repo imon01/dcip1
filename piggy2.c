@@ -964,17 +964,14 @@ int main(int argc, char *argv[]) {
         *   don't check for -noright
         */
         if (FD_ISSET(parentrd, &readset)) {
-            bzero(buf, sizeof(buf));
-            printf("1\n");
-            n = recv(parentrd, buf, sizeof(buf), 0);
-            printf("2\n");
+            bzero(buf, sizeof(buf));            
+            n = recv(parentrd, buf, sizeof(buf), 0);            
             
             if (n < 0) {
                 openrd = 0;
                 printf("right recv right error\n");
                 break;
-            }
-            printf("3\n");
+            }            
             if (n == 0) {
                 openrd = 0;
                     /* Reestablishing done at end of loop*/
@@ -1007,8 +1004,7 @@ int main(int argc, char *argv[]) {
                     if (n == 0) {
                         flags->persr = 2;                        
                         break;
-                    }
-                    printf("hee\n");                    
+                    }                    
                 }
 
                 /* Data only left forwarded if middle piggy */
