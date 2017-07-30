@@ -540,6 +540,9 @@ int main(int argc, char *argv[]) {
             printf("select error \n");
             break;
         }
+        if(n == 0){
+            printf("select == %d\n"
+        }
 
         /* Standard in descriptor ready
         * 0FD
