@@ -212,13 +212,12 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         }
         
         /* */
-        if (strncmp(command, "outputr", len) == 0) {
-             
+        if (strncmp(command, "outputr", len) == 0) {             
             value = 1;        
-            flags->output = 1;+
+            flags->output = 1;
         }
-        
-        /* */
+		
+		/* */
         if (strncmp(command, "output", len) == 0) {
             value = 1;        
             if (flags->output == 0) {
