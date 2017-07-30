@@ -541,7 +541,7 @@ int main(int argc, char *argv[]) {
             break;
         }
         if(n == 0){
-            printf("select == %d\n"
+            printf("select == %d\n", n );
         }
 
         /* Standard in descriptor ready
@@ -630,15 +630,16 @@ int main(int argc, char *argv[]) {
                     printf("exiting\n");
                     FD_ZERO(&masterset);
                     
-                    if(FD_ISSET(desc, &masterset){
+
+                    if(FD_ISSET(desc, &masterset)){
                         shutdown(desc,2);
                     }
                     
-                    if(FD_ISSET(parentld, &masterset){
+                    if(FD_ISSET(parentld, &masterset)){
                         shutdown(parentld,1);
                     }                    
                     
-                    if(FD_ISSET(parentrd, &masterset){
+                    if(FD_ISSET(parentrd, &masterset)){
                         shutdown(parentrd,2);
                     }
                     
