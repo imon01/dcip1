@@ -790,7 +790,7 @@ int main(int argc, char *argv[]) {
                             *  persl
                             */
                             case 2:
-                                if ((flags->position < 2) && !openld) {                                                                                
+                                if ((flags->position != 1) && !openld) {                                                                                
                                     bzero(buf, sizeof(buf));
                                     strcpy(buf, PERSL);
                                     n = send(desc, buf, sizeof(buf), 0);
@@ -998,11 +998,11 @@ int main(int argc, char *argv[]) {
             }
             
             /* Check for constant DROPL string*/
-            if ( strncmp(buf, DROPL, sizeof(buf) ) == 0 ) {
+            if ( strcmp(buf, DROPL ) == 0 ) {
                 openrd = 0;
             } 
             /* Check for constant PERSL string*/
-            else if ( strncmp(buf, PERSL, sizeof(buf) ) == 0 ) {
+            else if ( strcmp(buf, PERSL)  == 0 ) {
                 printf("remote right side reconnection");
                 openrd = 1;                
             }
