@@ -227,7 +227,7 @@ int main(int argc, char *argv[]) {
     }
 
     ip = *(struct in_addr *) lhost->h_addr_list[0];
-    flags->lladdr = inet_ntoa(ip);
+    flags->localaddr = inet_ntoa(ip);
     
     //printf("local addr: %s\n", flags->lladdr);
     /*********************************/
