@@ -21,7 +21,7 @@ typedef struct flags{
     unsigned char loopl;
     int llport;
     int rrport;
-	char  localaddr;
+	char * localaddr;
     char * rraddr;   
     char * lladdr;
     char * source; /* Source file*/   
