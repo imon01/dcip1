@@ -128,8 +128,7 @@ int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in co
                     
                 conn.sin_addr.s_addr = INADDR_ANY;                                 
                 conn.sin_port = htons((u_short)  port);        
-                                                            
-                
+				
                 /* Create a socket */
                 if ( (sd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
                     perror("socket");
@@ -313,7 +312,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         /* left side connection*/
         if (strncmp(command, "left", len) == 0){
             value = 1;                
-            if( *openld == 1){
+            if( *openld ){
                 printf("%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);            
             }
             else{
@@ -322,11 +321,11 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             printf(":%s:%hu", flags->lladdr, flags->llport);        
                     
                         
-            if(flags->dropl){
-                printf("\nDISCONNECTED\n");
+            if( *openld){
+                printf("\nLISTENING\n");
             }
             else{
-                printf("\nLISTENING\n");
+				printf("\nDISCONNECTED\n");
             }        
         }
         
