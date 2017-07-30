@@ -566,12 +566,7 @@ int main(int argc, char *argv[]) {
                         printf("Enter Insert\n");
                         i =0;
                         while ( (ch = getchar()) != 27 ) {
-                                //ch = getchar();
-                                
-                                //if(ch == 27){
-                                //    printf("\n");
-                                //    break;
-                               // }
+
                                 if(ch != 10){
                                     putchar(ch);
                                     buf[i] = (char) ch;
@@ -579,6 +574,7 @@ int main(int argc, char *argv[]) {
                                 }else{
                                     printf("\n");
                                     buf[i] = '\0';
+                                    
                                     /* Preconditions for sending data to the right, output == 1 */
                                     if (flags->output && openrd) {
                                         n = send(parentrd, buf, sizeof(buf), 0);
@@ -594,12 +590,9 @@ int main(int argc, char *argv[]) {
                                         }
                                         printf("right send\n");
                                     }
-                                    else{
-                                        printf("right connection closed");
-                                    }
                                     
                                     /* Preconditions for sending data to the left, output == 0 */
-                                    if (!flags->output && openld ) {
+                                    else if (!flags->output && openld ) {
                                         n = send(desc, buf, sizeof(buf), 0);
 
                                         if (n < 0) {
@@ -612,7 +605,12 @@ int main(int argc, char *argv[]) {
                                         printf("1 left send\n");
                                     }
                                     else{
-                                        printf("left connection closed");
+                                        if(!openld & !flags->output){
+                                            printf("left connection closed\n");
+                                        }
+                                        if( !openrd & flags->output == 1){
+                                            printf("left connection closed\n");
+                                        }
                                     }
                                 }                                
                         }/* End input loop*/
