@@ -91,8 +91,8 @@ WSADATA wsaData;
 WSAStartup(0x0101, &wsaData);
 #endif
 
-//extern int errno;
-//char localhost[] = "localhost"; /* default host name */
+extern int errno;
+char localhost[] = "localhost"; /* default host name */
 const char *DROPL = "REMOTE-LEFT-DROP";
 const char *PERSL = "REMOTE-LEFT-CONN";
 char *filename = "scriptin.txt"; // set default definition for filename
@@ -227,8 +227,8 @@ int main(int argc, char *argv[]) {
     }
 
     ip = *(struct in_addr *) lhost->h_addr_list[0];
-    flags->lladdr = inet_ntoa(ip);
-    
+    flags->localaddr = inet_ntoa(ip);
+    printf("local address: %s\n", flags->localaddr );
     //printf("local addr: %s\n", flags->lladdr);
     /*********************************/
     /* End getting local IP address  */
@@ -245,6 +245,7 @@ int main(int argc, char *argv[]) {
                 /* read file */
                 for (int comm = 0; argv[comm] != '\0'; comm++) {
                     /* Check if filename included */
+                    /* check if filename included */
                     if (strstr(argv[comm], ".txt") != NULL) {
                         fileRequested = 1;
                         filename = argv[comm];
@@ -256,8 +257,7 @@ int main(int argc, char *argv[]) {
                     readLines = fileRead(filename, output);
                     /* read from array and pass into flag function*/
                     for (x = 0; x < readLines; ++x) {
-                        //printf("got here");
-                        printf("%s\n", output[x]);
+                       // printf("%s\n", output[x]);
                         n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, right, lconn);
 
                         if (n < 0) {
@@ -272,8 +272,7 @@ int main(int argc, char *argv[]) {
                 else {
                     readLines = fileRead("scriptin.txt", output);
                     /* read from array and pass into flag function  */                    
-                    for (x = 0; x < readLines; ++x) {
-                        //printf("%s\n", output[x]);
+                    for (x = 0; x < readLines; ++x) {                        
                         n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, right, lconn);
 
                         if (n < 0) {
@@ -510,21 +509,17 @@ int main(int argc, char *argv[]) {
     /*end switch */
 
 
-    /****************************************************/
-    /*  Main loop performing network interaction        */
-    /****************************************************/
+    /************************************************************/
+    /************************************************************/
+    /*                          SELECT                          */
+    /*                                                          */
+    /*  Main loop performing network interaction (@tag s3l)     */
+    /*                                                          */
+    /************************************************************/
+    /************************************************************/
 
     
-    
-    /* 
-     * DEBUGGING
-     */        
-    
 
-    /*
-     * DEBUGGING
-     */    
-    
             
     /*  maxfd == parentld or maxfd == parentrd               */    
     maxfd = max(parentld, parentrd);
@@ -544,9 +539,11 @@ int main(int argc, char *argv[]) {
             printf("select == %d\n", n );
         }
 
-        /* Standard in descriptor ready
-        * 0FD
-        * Notes:
+        /*****************************************************************/
+        /* Standard in descriptor ready (@tag:  0FD)                     */        
+        /*****************************************************************/
+    
+        /* Notes:
         *   When creating the socket descriptors,
         *   we already ensured that parentrd > 0,;
         *   therfore don't need addition checks
@@ -800,7 +797,7 @@ int main(int argc, char *argv[]) {
                                     }else{
                                         FD_SET(desc, &masterset);
 
-					printf("connection established\n");
+                                        printf("connection established\n");
                                         openld = 1;
                                     }
                                 }
@@ -875,7 +872,7 @@ int main(int argc, char *argv[]) {
 
 
         /*
-         * LEFT SIDE ACCEPT
+         * LEFT SIDE ACCEPT DESCRIPTOR
          * LDA
          * 
          * 
@@ -894,17 +891,19 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
 
+ 	    flags->llport = (int) ntohs(lconn.sin_port);
+	    flags->lladdr = inet_ntoa(lconn.sin_addr);
             maxfd = max(maxfd, desc);
             FD_SET(desc, &masterset);
-            printf("right connection established\n");            
+            printf("connection established\n");
         }
 
-        /* LEFT SIDE LISTENING DESCRIPTOR
-        *  LDD
-        * 
-        * 
-        * 
-        * Notes:
+        /*****************************************************************/
+        /* Left Listeing Descriptor (@tag: LLD)                          */
+        /*****************************************************************/
+        
+        
+        /* Notes:
         *   When creating the socket descriptors, we
         *   already ensured that desc >0; therfore
         *   don't need addition checks during its use.
@@ -937,16 +936,15 @@ int main(int argc, char *argv[]) {
                 n = send(desc, buf, sizeof(buf), 0);
 
                 if (n < 0) {
-                    printf("-||---send left error\n");
-                    break;
+                    printf("-||---send left error\n");                    
                 }
                 if (n == 0) {
                     /* Set reconnect flag if persl is set*/
                     if (flags->persl) {
                         flags->reconl = 1;
-                    }
-                    break;
-                }
+                    }                    
+                }                
+                
             }
 
             /* Check if data needs to be forwarded */
@@ -955,27 +953,46 @@ int main(int argc, char *argv[]) {
 
                 if (n < 0) {
                     openrd = 0;
-                    printf("~.~.~.~send right error \n");
-                    break;
+                    printf("~.~.~.~send right error \n");                    
                 }
                 if (n == 0) {
                     openrd = 0;
                     /* Set reconnect flag if persl is set*/
+                    if (flags->persr) {
+                        flags->persr =  2;
+                    }
+                }
+                
+            }
+            
+            /* Check if output is set to left*/
+            if(openld && !flags->output){
+                n = send(desc, buf, sizeof(buf), 0);
+
+                if (n < 0) {
+                    openld = 0;
+                    printf("<>.<>.<> DESC send left error \n");
+                }
+                if (n == 0) {
+                    openld = 0;
+                    /* Set reconnect flag if persl is set*/
                     if (flags->persl) {
                         flags->reconl = 1;
                     }
-                    break;
                 }
+                
             }
+            
         }
         /* End ready  desc*/
 
 
-
-        /* RIGHT SIDE DESCRIPTROR
-        *  RDD
-        * 
-        * 
+        /*****************************************************************/
+        /* RIGHT SIDE DESCRIPTROR (@tag: RDD)                            */
+        /*****************************************************************/
+        
+         
+        /*
         * 
         * Notes:
         *   FD_ISSET will be true for the head
@@ -1044,6 +1061,12 @@ int main(int argc, char *argv[]) {
             }
         }/* End ready parentrd*/
 
+        
+        
+        /*****************************************/
+        /* Left and right reconnection if set    */
+        /*****************************************/
+        
         /* 
         *Notes:
         *  -Try right reconnection if unsuccessful
