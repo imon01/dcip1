@@ -791,9 +791,9 @@ int main(int argc, char *argv[]) {
                             */
                             case 2:
                                 if ((flags->position < 2) && !openld) {                                                                                
-                                    bzero(buf, sizeof(buf)); 
+                                    bzero(buf, sizeof(buf));
                                     strcpy(buf, PERSL);
-                                    n = send(desc, PERSL, sizeof(buf), 0);
+                                    n = send(desc, buf, sizeof(buf), 0);
                                                                             
                                     if (n < 0) {                                        
                                         openld = 0;
@@ -843,7 +843,7 @@ int main(int argc, char *argv[]) {
                                 if (desc > 0) {
                                     bzero(buf, sizeof(buf));                                     
                                     strcpy(buf, DROPL);
-                                    //printf("dropl %s\n", buf);
+                                    printf("dropl %s\n", buf);
                                     n = send(desc, buf, sizeof(buf), 0);
                                     openld = 0;
                                     if (n < 0) {
