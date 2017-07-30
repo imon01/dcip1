@@ -798,7 +798,9 @@ int main(int argc, char *argv[]) {
                                     if (n < 0) {                                        
                                         openld = 0;
                                     }else{
-                                        FD_SET(desc, &masterset);
+  //                                      FD_SET(desc, &masterset);
+
+					printf("connection established\n");
                                         openld = 1;
                                     }
                                 }
@@ -849,7 +851,7 @@ int main(int argc, char *argv[]) {
                                     if (n < 0) {
                                         continue;
                                     }
-                                    FD_CLR(desc, &masterset);
+//                                    FD_CLR(desc, &masterset);
                                 }
                                 break;
 
