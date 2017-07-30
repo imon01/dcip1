@@ -1006,7 +1006,7 @@ int main(int argc, char *argv[]) {
             } 
             /* Check for constant PERSL string*/
             else if ( strcmp(buf, PERSL)  == 0 ) {
-                printf("remote right side reconnection");
+                printf("remote right side reconnection\n");
                 openrd = 1;                
             }
             else {
