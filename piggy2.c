@@ -1001,6 +1001,7 @@ int main(int argc, char *argv[]) {
             
             /* Check for constant DROPL string*/
             if ( strcmp(buf, DROPL ) == 0 ) {
+                printf("remote right side drop");
                 openrd = 0;
             } 
             /* Check for constant PERSL string*/
