@@ -91,8 +91,8 @@ WSADATA wsaData;
 WSAStartup(0x0101, &wsaData);
 #endif
 
-extern int errno;
-char localhost[] = "localhost"; /* default host name */
+//extern int errno;
+//char localhost[] = "localhost"; /* default host name */
 const char *DROPL = "REMOTE-LEFT-DROP";
 const char *PERSL = "REMOTE-LEFT-CONN";
 char *filename = "scriptin.txt"; // set default definition for filename
@@ -227,7 +227,7 @@ int main(int argc, char *argv[]) {
     }
 
     ip = *(struct in_addr *) lhost->h_addr_list[0];
-    flags->localaddr = inet_ntoa(ip);
+    flags->lladdr = inet_ntoa(ip);
     
     //printf("local addr: %s\n", flags->lladdr);
     /*********************************/
@@ -245,7 +245,6 @@ int main(int argc, char *argv[]) {
                 /* read file */
                 for (int comm = 0; argv[comm] != '\0'; comm++) {
                     /* Check if filename included */
-                    /* check if filename included */
                     if (strstr(argv[comm], ".txt") != NULL) {
                         fileRequested = 1;
                         filename = argv[comm];
@@ -257,7 +256,8 @@ int main(int argc, char *argv[]) {
                     readLines = fileRead(filename, output);
                     /* read from array and pass into flag function*/
                     for (x = 0; x < readLines; ++x) {
-                       // printf("%s\n", output[x]);
+                        //printf("got here");
+                        printf("%s\n", output[x]);
                         n = flagsfunction(flags, output[x], sizeof(buf), flags->position, &openld, &openrd, &desc, &parentrd, right, lconn);
 
                         if (n < 0) {
@@ -894,11 +894,9 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
 
-			flags->llport = (int) ntohs(lconn.sin_port);
-			flags->lladdr = inet_ntoa(lconn.sin_addr);
             maxfd = max(maxfd, desc);
             FD_SET(desc, &masterset);
-            printf("connection established\n");
+            printf("right connection established\n");            
         }
 
         /* LEFT SIDE LISTENING DESCRIPTOR

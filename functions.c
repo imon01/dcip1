@@ -208,16 +208,21 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         if (strncmp(command, "outputl", len) == 0) {  
             value = 1;
             printf("set output to left piggy\n");
-            flags->output = 0;
+            flags->output =0;        
+            //flags->loopl = 0;
+            //flags->loopr = 0;            
         }
         
         /* */
-        if (strncmp(command, "outputr", len) == 0) {             
+        if (strncmp(command, "outputr", len) == 0) {
+             
             value = 1;        
             flags->output = 1;
+            //flags->loopl = 0;
+            //flags->loopr = 0;
         }
-		
-		/* */
+        
+        /* */
         if (strncmp(command, "output", len) == 0) {
             value = 1;        
             if (flags->output == 0) {
@@ -288,19 +293,19 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         /* */
         if (strncmp(command, "right", len) == 0){    
             value = 1;                
-            printf("%s:%hu", flags->localaddr, flags->llport);
-            if(*openrd ){
+            printf("%s:%hu", flags->lladdr, flags->llport);
+            if(*openrd == 1){
                 printf(":%s:%hu", flags->rraddr, flags->rrport);
             }
             else{
                 printf(":*:*");
             }
             
-            if(*openrd){
-                printf("\nCONNECTED\n");
+            if(flags->dropr){
+                printf("\nDISCONNECTED\n");
             }
             else{
-				printf("\nDISCONNECTED\n");            
+            printf("\nCONNECTED\n");
             }
         }
         
@@ -313,7 +318,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             else{
                 printf("*:*");
             }                
-            printf(":%s:%hu", flags->localaddr, flags->llport);        
+            printf(":%s:%hu", flags->lladdr, flags->llport);        
                     
                         
             if( *openld){
@@ -348,21 +353,28 @@ char fileRead(const char *filename, char *output[255]) {
     char input[255];
     char *line;
     FILE *file = fopen(filename, "r");
+    char buf[255] = "",
+            *delim = " \n";
 
-    if (file == NULL) {
-        printf("Cannot open file: %s\n", filename);        
-    }else{        
-        while(count < 255 && fgets(input, sizeof(input), file)) {
-            line = strtok(input, "\n");
-            if(line)
-                output[count++] = strdup(line);//Store replica
-        }
-        fclose(file);
+    if (!file) {  /* validate file open for reading */
+        fprintf (stderr, "error: file open failed '%s'.\n", filename);
+        return 1;
     }
 
+    if (!fgets (buf, 255, file)) {  /* read one line from file */
+        fprintf (stderr, "error: file read failed.\n");
+        return 1;
+    }
+
+    /* tokenize line with strtok */
+    for (char *p = strtok (buf, delim); p; p = strtok (NULL, delim))
+        output[count++] = strdup(p);//Store replica
+    if (file != stdin) {
+        fclose(file);     /* close file if not stdin */
+    }
     return count;
 }
-
+//
 
 char *strdup(const char *str){
     char *ret = malloc(strlen(str)+1);
