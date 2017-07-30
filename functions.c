@@ -289,18 +289,18 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         if (strncmp(command, "right", len) == 0){    
             value = 1;                
             printf("%s:%hu", flags->localaddr, flags->llport);
-            if(*openrd == 1){
+            if(*openrd ){
                 printf(":%s:%hu", flags->rraddr, flags->rrport);
             }
             else{
                 printf(":*:*");
             }
             
-            if(flags->dropr){
-                printf("\nDISCONNECTED\n");
+            if(*openrd){
+                printf("\nCONNECTED\n");
             }
             else{
-            printf("\nCONNECTED\n");
+				printf("\nDISCONNECTED\n");            
             }
         }
         

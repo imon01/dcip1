@@ -91,8 +91,8 @@ WSADATA wsaData;
 WSAStartup(0x0101, &wsaData);
 #endif
 
-//extern int errno;
-//char localhost[] = "localhost"; /* default host name */
+extern int errno;
+char localhost[] = "localhost"; /* default host name */
 const char *DROPL = "REMOTE-LEFT-DROP";
 const char *PERSL = "REMOTE-LEFT-CONN";
 char *filename = "scriptin.txt"; // set default definition for filename
@@ -894,9 +894,11 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
 
+			flags->llport = (int) ntohs(lconn.sin_port));
+			flags->lladdr = inet_ntoa(lconn.sin_addr));
             maxfd = max(maxfd, desc);
             FD_SET(desc, &masterset);
-            printf("right connection established\n");            
+            printf("connection established\n");
         }
 
         /* LEFT SIDE LISTENING DESCRIPTOR
