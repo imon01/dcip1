@@ -694,7 +694,7 @@ int main(int argc, char *argv[]) {
                                  *  persl
                                  */
                                 case 2:
-                                    if ((flags->position < 2) && !openld) {                                                                                
+                                    if ( flags->position != 1 ) {
                                         bzero(buf, sizeof(buf));
                                         strcpy(buf, PERSL);
                                         n = send(desc, buf, sizeof(buf), 0);
