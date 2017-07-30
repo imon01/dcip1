@@ -703,7 +703,7 @@ int main(int argc, char *argv[]) {
                                             openld = 1;
                                         }
                                     }
-                                    
+                                    bzero(buf, sizeof(buf));
                                     break;
 
                                 /*
@@ -727,6 +727,7 @@ int main(int argc, char *argv[]) {
                                             flags->persr = 2;
                                         }
                                     }
+                                    bzero(buf, sizeof(buf));
                                     break;
 
                                 /*
@@ -761,9 +762,11 @@ int main(int argc, char *argv[]) {
                                     if (parentrd > 0) {
                                         FD_CLR(parentrd, &masterset);
                                     }
+                                    bzero(buf, sizeof(buf));
                                     break;
 
                                 default:
+                                    bzero(buf, sizeof(buf));
                                     printf("invalid command\n");                                    
 
                             }
@@ -801,7 +804,7 @@ int main(int argc, char *argv[]) {
                                         openld = 1;
                                     }
                                 }
-                                
+                                bzero(buf, sizeof(buf));
                                 break;
 
                             /*
@@ -850,6 +853,7 @@ int main(int argc, char *argv[]) {
                                     }
 //                                    FD_CLR(desc, &masterset);
                                 }
+                                bzero(buf, sizeof(buf));
                                 break;
 
                             /* 
@@ -944,7 +948,7 @@ int main(int argc, char *argv[]) {
                         flags->reconl = 1;
                     }                    
                 }                
-                
+                bzero(buf, sizeof(buf));
             }
 
             /* Check if data needs to be forwarded */
@@ -962,7 +966,7 @@ int main(int argc, char *argv[]) {
                         flags->persr =  2;
                     }
                 }
-                
+                bzero(buf, sizeof(buf));
             }
             
             /* Check if output is set to left*/
@@ -980,7 +984,7 @@ int main(int argc, char *argv[]) {
                         flags->reconl = 1;
                     }
                 }
-                
+                bzero(buf, sizeof(buf));
             }
             
         }
@@ -1041,7 +1045,8 @@ int main(int argc, char *argv[]) {
                     if (n == 0) {
                         flags->persr = 2;                        
                         break;
-                    }                    
+                    }
+                    bzero(buf, sizeof(buf));
                 }
 
                 /* Data only left forwarded if middle piggy */
@@ -1058,6 +1063,7 @@ int main(int argc, char *argv[]) {
                         break;
                     }
                 }
+                bzero(buf, sizeof(buf));
             }
         }/* End ready parentrd*/
 
