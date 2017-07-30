@@ -790,7 +790,7 @@ int main(int argc, char *argv[]) {
                             *  persl
                             */
                             case 2:
-                                if ((flags->position != 1) && !openld) {                                                                                
+                                if ( flags->position != 1 ) {                                                                                
                                     bzero(buf, sizeof(buf));
                                     strcpy(buf, PERSL);
                                     n = send(desc, buf, sizeof(buf), 0);
@@ -798,7 +798,7 @@ int main(int argc, char *argv[]) {
                                     if (n < 0) {                                        
                                         openld = 0;
                                     }else{
-  //                                      FD_SET(desc, &masterset);
+                                        FD_SET(desc, &masterset);
 
 					printf("connection established\n");
                                         openld = 1;
@@ -1001,7 +1001,7 @@ int main(int argc, char *argv[]) {
             
             /* Check for constant DROPL string*/
             if ( strcmp(buf, DROPL ) == 0 ) {
-                printf("remote right side drop");
+                printf("remote right side dropn\n");
                 openrd = 0;
             } 
             /* Check for constant PERSL string*/
