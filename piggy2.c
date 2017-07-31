@@ -897,9 +897,12 @@ int main(int argc, char *argv[]) {
                 tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                 exit(1);
             }
-
- 	    flags->llport = (int) ntohs(lconn.sin_port);
-	    flags->lladdr = inet_ntoa(lconn.sin_addr);
+            
+            struct sockaddr_in *client = (struct sockaddr_in *) &lconn;
+            flags->llport = (int) ntohs(client->sin_port);
+            flags->lladdr = inet_ntoa(client->sin_addr);
+ 	    //flags->llport = (int) ntohs(lconn.sin_port);
+	    //flags->lladdr = inet_ntoa(lconn.sin_addr);
             maxfd = max(maxfd, desc);
             FD_SET(desc, &masterset);
             printf("connection established\n");
