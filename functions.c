@@ -204,38 +204,47 @@ int sock_init( int pigopt, int qlen, int port, char *addr, struct sockaddr_in co
 */
 int flagsfunction( icmd  * flags, char * command, int len ,int position, int * openld, int * openrd, int * ld, int * rd, struct sockaddr_in left, struct sockaddr_in right){    
         int value = -1;
-        /* */
+        
+        /* output left (0), output right (1)*/
         if (strncmp(command, "outputl", len) == 0) {  
-            value = 1;
-            printf("set output to left piggy\n");
-            flags->output =0;
+            
+            if(position != 1){
+                value = 1;            
+                flags->output =0;
+            }
+            else{
+                printf("Cant set head piggy output right\n");
+            }
         }
         
-        /* */
+        
+        /* output left (0), output right (1)*/
         if (strncmp(command, "outputr", len) == 0) {
              
-            value = 1;        
-            flags->output = 1;
+            if(position !=2){
+                value = 1;        
+                flags->output = 1;
+            }else{
+                printf("Can't set tail piggy output right\n");
+            }
         }
         
         /* */
         if (strncmp(command, "output", len) == 0) {
             value = 1;        
-            if (flags->output == 0) {
-                printf("output = left\n");
+            if (flags->output) {
+                printf("output = right\n");
             }
             else{
-                printf("output = right\n");  
+                printf("output = left\n");  
             }
         }
         
         /* */
         if (strncmp(command, "dsplr", len) == 0) {
             value = 1;
-            flags->dsprl = 0;
-            flags->dsplr = 1;
-            flags->dsplr = 1;
-            printf("display left to right stream\n");
+            flags->dsprl = 0;            
+            flags->dsplr = 1;            
         }
         
         /* */
@@ -248,7 +257,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         /* */
         if (strncmp(command, "display", len) == 0) {
             value = 1;
-            if(flags->dsplr){
+            if(flags->dsprl){
                 printf("display right\n");
             }
             else{
@@ -306,7 +315,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         }
         
         
-        
+    
         
         /* left side connection*/
         if (strncmp(command, "left", len) == 0){
