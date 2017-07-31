@@ -293,7 +293,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         /* */
         if (strncmp(command, "right", len) == 0){    
             value = 1;                
-            printf("%s:%hu", flags->localladdr, flags->llport);
+            printf("%s:%hu", flags->localaddr, flags->llport);
             if(*openrd == 1){
                 printf(":%s:%hu", flags->rraddr, flags->rrport);
             }
@@ -308,6 +308,9 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
                 printf("\nDISCONNECTED\n");            
             }
         }
+        
+        
+        
         
         /* left side connection*/
         if (strncmp(command, "left", len) == 0){
