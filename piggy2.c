@@ -905,7 +905,8 @@ int main(int argc, char *argv[]) {
 	    //flags->lladdr = inet_ntoa(lconn.sin_addr);
             maxfd = max(maxfd, desc);
             FD_SET(desc, &masterset);
-            printf("connection established\n");
+            
+            printf("connection established (%s : %hu)\n", flags->lladdr, flags->llport);
         }
 
         /*****************************************************************/
