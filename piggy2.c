@@ -900,10 +900,10 @@ int main(int argc, char *argv[]) {
          *  Accept incoming left connection
          */
         if (FD_ISSET(parentld, &readset)) {
-            printf("address change check, local IP: %s\n", flags->localaddr);
+            printf("903 local IP: %s\n", flags->localaddr);
             len = sizeof(lconn);
             desc = accept(parentld, (struct sockaddr *) &lconn, &len);
-
+            printf("906 local IP: %s\n", flags->localaddr);
             if (desc < 0) {
                 printf("left accept error\n");
                 tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
@@ -919,7 +919,7 @@ int main(int argc, char *argv[]) {
             FD_SET(desc, &masterset);
                         
             printf("connection established (%s : %hu)\n", flags->lladdr, flags->llport);
-            printf("address change check, local IP: %s\n", flags->localaddr);
+            printf("922 local IP: %s\n", flags->localaddr);
         }
 
         /*****************************************************************/
