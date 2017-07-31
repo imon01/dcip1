@@ -242,16 +242,28 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         
         /* */
         if (strncmp(command, "dsplr", len) == 0) {
-            value = 1;
-            flags->dsprl = 0;            
-            flags->dsplr = 1;            
+            
+            if(postion !=1){
+                value = 1;
+                flags->dsprl = 0;
+                flags->dsplr = 1;                
+            }
+            else{
+                printf("Cant set dsplr for head piggy\n");
+            }
         }
         
         /* */
         if (strncmp(command, "dsprl", len) == 0) {
-            value = 1;     
-            flags->dsprl = 1;
-            flags->dsplr = 0;
+            
+            if(position != 2){
+                value = 1;
+                flags->dsprl = 1;
+                flags->dsplr = 0;
+            }
+            else{
+                printf("Cant set dsprl for tail piggy\n");
+            }
         }
         
         /* */

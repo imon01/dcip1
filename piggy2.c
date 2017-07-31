@@ -614,7 +614,7 @@ int main(int argc, char *argv[]) {
                                         if(n == 0 && flags->persl) {
                                             break;
                                         }
-                                        printf("1 left send\n");
+                                        
                                     }
                                     else{
                                         if(!openld & !flags->output){
@@ -639,7 +639,7 @@ int main(int argc, char *argv[]) {
                     bzero(buf, sizeof(buf));
                     printf("exiting\n");
                     FD_ZERO(&masterset);
-                    
+/*                    
 
                     if(FD_ISSET(desc, &masterset)){
                         shutdown(desc,2);
@@ -651,7 +651,7 @@ int main(int argc, char *argv[]) {
                     
                     if(FD_ISSET(parentrd, &masterset)){
                         shutdown(parentrd,2);
-                    }
+                    }*/
                     
                     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                     return 1;
