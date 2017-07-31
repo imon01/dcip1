@@ -561,7 +561,7 @@ int main(int argc, char *argv[]) {
                     if (openrd || openld) {
                         bzero(buf, sizeof(buf));
                         printf("Enter Insert\n");
-                        i =0;
+                        
                         while ( (ch = getchar()) != 27 ) {
 
                                 if(ch != 10){
@@ -571,10 +571,12 @@ int main(int argc, char *argv[]) {
                                 }else{
                                     printf("\n");
                                     buf[i] = '\0';
-                                    
+                                    i =0;
                                     /* Preconditions for sending data to the right, output == 1 */
                                     if (flags->output && openrd) {
                                         n = send(parentrd, buf, sizeof(buf), 0);
+                                        bzero(buf, sizeof(buf));
+                                        
                                         if (n < 0) {
                                             printf("right send error");
                                             break;
@@ -585,12 +587,13 @@ int main(int argc, char *argv[]) {
                                             flags->reconl = 1;                                        
                                             break;
                                         }
-                                        printf("right send\n");
+                                        
                                     }
                                     
                                     /* Preconditions for sending data to the left, output == 0 */
                                     else if (!flags->output && openld ) {
                                         n = send(desc, buf, sizeof(buf), 0);
+                                        bzero(buf, sizeof(buf));
 
                                         if (n < 0) {
                                             printf("left send error \n");
@@ -608,7 +611,7 @@ int main(int argc, char *argv[]) {
                                         if( !openrd & flags->output == 1){
                                             printf("left connection closed\n");
                                         }
-                                    }
+                                    }                                    
                                 }                                
                         }/* End input loop*/
                     }/* End of at least one socket is open*/ 
