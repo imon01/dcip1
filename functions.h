@@ -21,10 +21,10 @@ typedef struct flags{
     unsigned char loopl;
     int llport;
     int rrport;
-    char * localaddr;
-    char * rraddr;   
-    char * lladdr;
-    char * source; /* Source file*/   
+    char localaddr [100];
+    char rraddr[100];   
+    char lladdr[100];
+    char source[100]; /* Source file*/   
 }icmd;
 
 

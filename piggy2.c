@@ -203,15 +203,15 @@ int main(int argc, char *argv[]) {
 
     flags->noleft    = 0;
     flags->noright   = 0;
-    flags->rraddr    = NULL;      /* Right connecting address                                           */
-    flags->lladdr    = NULL;      /* Left connected address                                             */
-    flags->localaddr = NULL;      /* Local address                                                      */
-    flags->llport    = PROTOPORT; /* left protocol port number                                          */
-    flags->rrport    = PROTOPORT; /* right protocol port number                                         */
-    flags->dsplr     = 1;         /* display left to right data, default if no display option provided  */   
-    flags->dsprl     = 0;         /* display right  to left data                                        */
-    flags->loopr     = 0;         /* take data that comes from the left and send it back to the left    */
-    flags->loopl     = 0;         /* take data that comes in from the right and send back to the right  */
+    bzero(flags->rraddr, sizeof(flags->rraddr));    /* Right connecting address                                           */
+    bzero(flags->rraddr, sizeof(flags->rraddr));    /* Left connected address                                             */
+    bzero(flags->rraddr, sizeof(flags->rraddr));    /* Local address                                                      */
+    flags->llport    = PROTOPORT;                   /* left protocol port number                                          */
+    flags->rrport    = PROTOPORT;                   /* right protocol port number                                         */
+    flags->dsplr     = 1;                           /* display left to right data, default if no display option provided  */   
+    flags->dsprl     = 0;                           /* display right  to left data                                        */
+    flags->loopr     = 0;                           /* take data that comes from the left and send it back to the left    */
+    flags->loopl     = 0;                           /* take data that comes in from the right and send back to the right  */
     flags->output    = 1;
 
 
@@ -335,7 +335,7 @@ int main(int argc, char *argv[]) {
                 break;
 
             case 'z':                
-                flags->rraddr = argv[optind - 1];
+                strcpy(flags->rraddr, argv[optind - 1]);
 
                 hints.ai_family = AF_INET;
                 n = getaddrinfo(flags->rraddr, NULL, NULL, &infoptr);
@@ -348,7 +348,7 @@ int main(int argc, char *argv[]) {
 
                 for (p = infoptr; p != NULL; p = p->ai_next) {
                     getnameinfo(p->ai_addr, p->ai_addrlen, hostinfo, sizeof(hostinfo), NULL, 0, NI_NUMERICHOST);
-                    flags->rraddr = hostinfo;
+                    strcpy( flags->rraddr,  hostinfo);
                 }
 
                 freeaddrinfo(infoptr);
@@ -368,7 +368,7 @@ int main(int argc, char *argv[]) {
     /**************************************************/
     
     /* If head piggy selected, it requires a right address*/
-    if(flags->noleft && ( flags->rraddr[0] == '0') ){
+    if(flags->noleft && ( flags->rraddr[0] == '\0') ){
         printf("Head piggy requires a right address...\n");
         tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
         return -1;        
@@ -406,7 +406,7 @@ int main(int argc, char *argv[]) {
 
     /* A position < 1 implies that the currect piggy is at least*/
     /*  a middle piggy                                          */
-    if ((flags->position < 1) & (flags->rraddr == NULL)) {
+    if ((flags->position < 1) & (flags->rraddr[0] == '\0')) {
         printf("Piggy right connection requires right address or DNS...\n");
         tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
          return -1;
@@ -433,7 +433,7 @@ int main(int argc, char *argv[]) {
     }
 
     ip = *(struct in_addr *) lhost->h_addr_list[0];
-    flags->localaddr = inet_ntoa(ip);
+    strcpy( flags->localaddr, inet_ntoa(ip));
     printf("local address: %s\n", flags->localaddr );
 
 
@@ -912,9 +912,10 @@ int main(int argc, char *argv[]) {
             
             struct sockaddr_in *client = (struct sockaddr_in *) &lconn;
             flags->llport = (int) ntohs(client->sin_port);
-            flags->lladdr = inet_ntoa(client->sin_addr);
+            strcpy( flags->lladdr, inet_ntoa(client->sin_addr));
  	    //flags->llport = (int) ntohs(lconn.sin_port);
 	    //flags->lladdr = inet_ntoa(lconn.sin_addr);
+            printf("922 local IP: %s\n", flags->localaddr);
             maxfd = max(maxfd, desc);
             FD_SET(desc, &masterset);
                         
