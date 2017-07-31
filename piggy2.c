@@ -519,7 +519,7 @@ int main(int argc, char *argv[]) {
     }
     /*end switch */
 
-
+    printf("address change check, local IP: %s\n", flags->localaddr);
     /************************************************************/
     /************************************************************/
     /*                          SELECT                          */
@@ -900,6 +900,7 @@ int main(int argc, char *argv[]) {
          *  Accept incoming left connection
          */
         if (FD_ISSET(parentld, &readset)) {
+            printf("address change check, local IP: %s\n", flags->localaddr);
             len = sizeof(lconn);
             desc = accept(parentld, (struct sockaddr *) &lconn, &len);
 
