@@ -208,9 +208,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         if (strncmp(command, "outputl", len) == 0) {  
             value = 1;
             printf("set output to left piggy\n");
-            flags->output =0;        
-            //flags->loopl = 0;
-            //flags->loopr = 0;            
+            flags->output =0;
         }
         
         /* */
@@ -218,8 +216,6 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
              
             value = 1;        
             flags->output = 1;
-            //flags->loopl = 0;
-            //flags->loopr = 0;
         }
         
         /* */
@@ -288,7 +284,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
             flags->dropr = 1;
             *openrd = 0;
             shutdown( *rd, 2);
-        }            
+        }
         
         /* */
         if (strncmp(command, "right", len) == 0){    
@@ -316,7 +312,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         if (strncmp(command, "left", len) == 0){
             value = 1;                
             if( *openld ){
-                printf("%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);            
+                printf("%s:%hu",inet_ntoa(left.sin_addr), left.sin_port);
             }
             else{
                 printf("*:*");

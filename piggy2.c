@@ -194,45 +194,25 @@ int main(int argc, char *argv[]) {
     int readCommandLines;
     int inputLength = 0;
 
+    /*********************************/
+    /*  Flag variables init_init     */
+    /*********************************/    
 
     icmd *flags;
     flags = malloc(sizeof(icmd));
 
-    flags->noleft = 0;
-    flags->noright = 0;
-    flags->rraddr = NULL;      /* hold addresses of left and right connect IP adresses */
-    flags->llport = PROTOPORT; /* left protocol port number */
-    flags->rrport = PROTOPORT; /* right protocol port number */
-    flags->dsplr = 1;          /* display left to right data, default if no display option provided */\    
-    flags->dsprl = 0;          /* display right  to left data */
-    flags->loopr = 0;          /* take data that comes from the left and send it back to the left */
-    flags->loopl = 0;          /* take data that comes in from the right and send back to the right */
-    flags->output = 1;
-
-
-    /*********************************/
-    /*    Getting local IP address   */
-    /*********************************/
-    if (gethostname(hostname, sizeof(hostname)) < 0) {
-        printf("gethostname, local machine error\n");
-        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-        return -1;
-    }
-
-    lhost = gethostbyname(hostname);
-    if (lhost == NULL) {
-        printf("gethostbyname, local machine error\n");
-        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-        return -1;
-    }
-
-    ip = *(struct in_addr *) lhost->h_addr_list[0];
-    flags->localaddr = inet_ntoa(ip);
-    printf("local address: %s\n", flags->localaddr );
-    //printf("local addr: %s\n", flags->lladdr);
-    /*********************************/
-    /* End getting local IP address  */
-    /*********************************/
+    flags->noleft    = 0;
+    flags->noright   = 0;
+    flags->rraddr    = NULL;      /* Right connecting address                                           */
+    flags->lladdr    = NULL;      /* Left connected address                                             */
+    flags->localaddr = NULL;      /* Local address                                                      */
+    flags->llport    = PROTOPORT; /* left protocol port number                                          */
+    flags->rrport    = PROTOPORT; /* right protocol port number                                         */
+    flags->dsplr     = 1;         /* display left to right data, default if no display option provided  */   
+    flags->dsprl     = 0;         /* display right  to left data                                        */
+    flags->loopr     = 0;         /* take data that comes from the left and send it back to the left    */
+    flags->loopl     = 0;         /* take data that comes in from the right and send back to the right  */
+    flags->output    = 1;
 
 
 
@@ -381,6 +361,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    
+    
     /**************************************************/
     /*  Adjusting program variables and correct flags */
     /**************************************************/
@@ -431,10 +413,39 @@ int main(int argc, char *argv[]) {
         exit(1);
 
     }
+    
 
+    
+    /*********************************/
+    /*    Getting local IP address   */
+    /*********************************/
+    if (gethostname(hostname, sizeof(hostname)) < 0) {
+        printf("gethostname, local machine error\n");
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+        return -1;
+    }
+
+    lhost = gethostbyname(hostname);
+    if (lhost == NULL) {
+        printf("gethostbyname, local machine error\n");
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+        return -1;
+    }
+
+    ip = *(struct in_addr *) lhost->h_addr_list[0];
+    flags->localaddr = inet_ntoa(ip);
+    printf("local address: %s\n", flags->localaddr );
+
+
+
+    
+    /*********************************/
+    /* Descriptor set init           */
+    /*********************************/    
     FD_ZERO(&masterset);
     FD_SET(0, &masterset);
 
+    
 
     /*********************************/
     /*  Piggy setup                  */
@@ -905,8 +916,9 @@ int main(int argc, char *argv[]) {
 	    //flags->lladdr = inet_ntoa(lconn.sin_addr);
             maxfd = max(maxfd, desc);
             FD_SET(desc, &masterset);
-            
+                        
             printf("connection established (%s : %hu)\n", flags->lladdr, flags->llport);
+            printf("address change check, local IP: %s\n", flags->localaddr);
         }
 
         /*****************************************************************/
