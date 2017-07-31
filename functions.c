@@ -243,7 +243,7 @@ int flagsfunction( icmd  * flags, char * command, int len ,int position, int * o
         /* */
         if (strncmp(command, "dsplr", len) == 0) {
             
-            if(postion !=1){
+            if(position !=1){
                 value = 1;
                 flags->dsprl = 0;
                 flags->dsplr = 1;                
